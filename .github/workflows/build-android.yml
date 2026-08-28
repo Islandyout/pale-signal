@@ -5,6 +5,10 @@ on:
     branches: [ main ]
     paths:
       - 'prototype/**'
+      - 'live/**'
+      - 'index.html'
+      - 'manifest.webmanifest'
+      - 'icon.svg'
       - 'android-app/**'
       - '.github/workflows/build-android.yml'
   workflow_dispatch:
@@ -30,10 +34,16 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
-      - name: Bundle current Pale Signal build
+      - name: Bundle current Pale Signal live build
         run: |
-          mkdir -p android-app/app/src/main/assets
-          cp prototype/pale-signal.html.html android-app/app/src/main/assets/index.html
+          rm -rf android-app/app/src/main/assets
+          mkdir -p android-app/app/src/main/assets/prototype
+          mkdir -p android-app/app/src/main/assets/live
+          cp index.html android-app/app/src/main/assets/index.html
+          cp prototype/pale-signal.html.html android-app/app/src/main/assets/prototype/pale-signal.html.html
+          cp live/*.js android-app/app/src/main/assets/live/
+          cp manifest.webmanifest android-app/app/src/main/assets/manifest.webmanifest
+          cp icon.svg android-app/app/src/main/assets/icon.svg
 
       - name: Build debug APK
         working-directory: android-app
