@@ -28,5 +28,6 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPro
 install.addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;install.style.display='none';});
 window.addEventListener('appinstalled',()=>{install.style.display='none';});
 </script>
+<script src="live/live.js"></script>
 </body>
 </html>
