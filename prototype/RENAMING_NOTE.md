@@ -1,0 +1,1 @@
+Temporary note: correcting uploaded prototype filename from `pale-signal.html.html` to `pale-signal.html`.
