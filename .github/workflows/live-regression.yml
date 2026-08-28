@@ -1,0 +1,76 @@
+name: Live Regression Checks
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'live/**'
+      - 'index.html'
+      - 'sw.js'
+      - '.github/workflows/live-regression.yml'
+  workflow_dispatch:
+
+jobs:
+  validate-live-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: JavaScript syntax check
+        shell: bash
+        run: |
+          set -euo pipefail
+          found=0
+          for file in live/*.js; do
+            [ -e "$file" ] || continue
+            found=1
+            echo "Checking $file"
+            node --check "$file"
+          done
+          [ "$found" -eq 1 ] || { echo "No live JavaScript files found"; exit 1; }
+
+      - name: Validate live script wiring
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib, re, sys
+          root = pathlib.Path('.')
+          index = (root / 'index.html').read_text(encoding='utf-8')
+          sw = (root / 'sw.js').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script\s+src="(live/[^"]+\.js)"', index)
+          if not scripts:
+              raise SystemExit('No live scripts referenced by index.html')
+          errors = []
+          for src in scripts:
+              if not (root / src).is_file():
+                  errors.append(f'missing file referenced by index.html: {src}')
+              cached = f"./{src}"
+              if cached not in sw:
+                  errors.append(f'live script missing from service-worker CORE cache: {cached}')
+          if len(scripts) != len(set(scripts)):
+              errors.append('duplicate live script reference in index.html')
+          cache = re.search(r"const CACHE='([^']+)'", sw)
+          if not cache:
+              errors.append('service-worker CACHE version not found')
+          if errors:
+              print('\n'.join(errors), file=sys.stderr)
+              raise SystemExit(1)
+          print(f'Validated {len(scripts)} live scripts; cache={cache.group(1)}')
+          PY
+
+      - name: Validate core shell files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f prototype/pale-signal.html.html
+          test -f manifest.webmanifest
+          test -f icon.svg
+          grep -q 'prototype/pale-signal.html.html' index.html
+          grep -q './prototype/pale-signal.html.html' sw.js
