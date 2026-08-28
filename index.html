@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#05070c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -11,13 +11,22 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
 <title>Pale Signal</title>
-<style>html,body{margin:0;background:#05070c;color:#cfe4f2;font-family:system-ui,sans-serif;height:100%;display:grid;place-items:center}main{text-align:center;padding:24px}a{color:#57c8ff}</style>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#05070c}
+#game{position:fixed;inset:0;width:100%;height:100%;border:0;background:#05070c}
+#install{position:fixed;right:10px;top:max(10px,env(safe-area-inset-top));z-index:20;border:1px solid #1d2c3a;background:rgba(5,7,12,.86);color:#cfe4f2;padding:8px 10px;border-radius:6px;font:12px system-ui,sans-serif;display:none}
+</style>
 </head>
 <body>
-<main><h1>Pale Signal</h1><p>Launching current approved build…</p><p><a href="prototype/pale-signal.html.html">Open game</a></p></main>
+<iframe id="game" src="prototype/pale-signal.html.html" allow="fullscreen; autoplay; gamepad; pointer-lock" allowfullscreen></iframe>
+<button id="install" type="button">Install Pale Signal</button>
 <script>
 if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}
-location.replace('prototype/pale-signal.html.html');
+let deferredPrompt=null;
+const install=document.getElementById('install');
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;install.style.display='block';});
+install.addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;install.style.display='none';});
+window.addEventListener('appinstalled',()=>{install.style.display='none';});
 </script>
 </body>
 </html>
