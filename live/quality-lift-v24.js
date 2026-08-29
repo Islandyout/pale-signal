@@ -36,7 +36,7 @@
         function faunaTick(t,dt){
           const E=globalThis.PALE_EVA_WILDLIFE_KESTRA;if(!E||!E.faunaRoot||!E.fauna)return;
           const player=(typeof ex!=='undefined'&&ex.pos)?ex.pos:null;let shipPos=null;try{if(typeof ship!=='undefined'&&ship&&ship.pos)shipPos=ship.pos;}catch(e){}
-          for(const n of E.fauna){if(!n||!n.visible||!n.userData||!n.userData.entry)continue;const wp=n.position.clone().add(E.faunaRoot.position),pd=player?wp.distanceTo(player):999,sd=shipPos?wp.distanceTo(shipPos):999,threat=Math.min(pd,sd*.72);const body=n.userData.body,head=n.userData.head;
+          for(const n of E.fauna){if(!n||!n.visible||!n.userData||!n.userData.entry)continue;const local=n.userData.entry.local||n.position,pd=player?local.distanceTo(player):999,sd=shipPos?local.distanceTo(shipPos):999,threat=Math.min(pd,sd*.72);const body=n.userData.body,head=n.userData.head;
             if(threat<18){const flee=Math.max(0,(18-threat)/18);if(head){head.rotation.y=Math.sin(t*.004)*.18;head.position.y=.82+flee*.18;}if(body&&!reduced())body.rotation.z=Math.sin(t*.01)*.03*flee;n.scale.setScalar(1+flee*.035);}
             else n.scale.lerp(new THREE.Vector3(1,1,1),.08);
             const prev=Q.faunaPrev.get(n);if(!prev)Q.faunaPrev.set(n,{near:false});const st=Q.faunaPrev.get(n);if(threat<9&&!st.near){st.near=true;tone(145,.055,.006,'triangle');caption(sd<pd?'Wildlife scatters from the ship':'Wildlife reacts to your approach');}else if(threat>12)st.near=false;
