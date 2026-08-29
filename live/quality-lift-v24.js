@@ -7,7 +7,7 @@
       w.eval(`(()=>{
         if(globalThis.__PALE_QUALITY_LIFT_V24)return;
         globalThis.__PALE_QUALITY_LIFT_V24=true;
-        const Q={lastT:performance.now(),npcPrev:new WeakMap(),faunaPrev:new WeakMap(),signalBeat:0,lastSignal:0,lastCaption:0,caption:null,audio:null};
+        const Q={lastT:performance.now(),npcPrev:new WeakMap(),faunaPrev:new WeakMap(),signalBeat:0,lastSignal:0,lastSignalEval:0,lastCaption:0,caption:null,audio:null};
         const UNIT_SCALE=new THREE.Vector3(1,1,1);
         globalThis.PALE_QUALITY_LIFT=Q;
         const touch=(('ontouchstart' in window)||navigator.maxTouchPoints>0);
@@ -54,6 +54,7 @@
           Q.audio.g.gain.setTargetAtTime(target,Q.audio.c.currentTime,.22);Q.audio.o.frequency.setTargetAtTime(f,Q.audio.c.currentTime,.2);Q.audio.f.frequency.setTargetAtTime(G.mode==='flight'?420:250,Q.audio.c.currentTime,.25);
         }
         function signalTick(t){
+          if(t-Q.lastSignalEval<250)return;Q.lastSignalEval=t;
           const F=globalThis.PALE_FIRST_HOUR_SIGNAL;if(!F)return;let level=0;try{level=(F.stage||0)+(Object.keys(F.used||{}).length*.4);const K=globalThis.PALE_KESTRA_STREET_ARCH;if(K&&K.archSeen&&K.archSeen.__complete)level+=2;}catch(e){}
           if(level<4)return;const gap=Math.max(5200,11000-level*550);if(t-Q.lastSignal<gap)return;Q.lastSignal=t;Q.signalBeat++;
           const q=touch&&fps()<42?.55:1;tone(91+(Q.signalBeat%3)*11,.18,.009*q,'sine');setTimeout(()=>tone(182,.11,.005*q,'triangle'),120);
