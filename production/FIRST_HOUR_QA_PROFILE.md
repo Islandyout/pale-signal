@@ -17,6 +17,27 @@ The live build exposes `globalThis.PALE_QA_METRICS` from `live/interaction-qa-v1
 
 On desktop, F8 toggles the lightweight QA overlay. Mobile profiling remains hidden to protect screen space and runs in the background.
 
+The dedicated Kestra Gate D profiler is exposed as `globalThis.PALE_QA_PROFILER`. A valid production capture runs for at least 55 seconds, records at least 900 foreground frame samples and at least 90 renderer samples, and reports frame-time percentiles plus renderer calls/triangles/geometries/textures/programs.
+
+`live/qa-evidence-v20.js` makes those captures practical on the actual target device instead of requiring a remote JavaScript console. Completed reports are retained in local storage (latest six captures) and shown in a copyable QA-only evidence panel.
+
+### USER ACTION REQUIRED — Gate D capture
+Desktop:
+1. Open the deployed Pale Signal build and reach Kestra.
+2. Press **F9** to start a 60-second capture.
+3. Traverse the ground/street area normally and include a landing-field/approach view if practical.
+4. When the result panel appears, confirm it says `VALID 60s CAPTURE` and use **COPY REPORT**.
+5. Preserve the copied report with the reference-machine model/specification and quality setting.
+
+Target Android phone:
+1. Open the installed current Android build and reach Kestra.
+2. Press and hold the **top-left corner of the game view for 1.8 seconds** without moving the finger more than roughly 22 px. The game confirms that the 60-second capture started.
+3. Traverse Kestra normally for the full capture while keeping the app foregrounded.
+4. When the evidence panel appears, confirm it says `VALID 60s CAPTURE` and tap **COPY REPORT**.
+5. Preserve the copied report together with phone model, Android version, thermal state, battery/charging state, and selected quality tier.
+
+Do not infer a performance pass from CI, Pages deployment, Android compilation, or an invalid/incomplete capture.
+
 ## First-hour pacing acceptance
 A clean new-game run should progress without external instructions through:
 1. Arrival / EVA orientation
@@ -65,8 +86,8 @@ Device-specific evidence is mandatory. Do not claim universal 60 FPS.
 
 ## Gate status
 Instrumentation: IMPLEMENTED
-Static syntax QA: PASSED for `interaction-qa-v10.js`
-GitHub Pages deployment: PASSED
-Android APK workflow: PASSED
+Static syntax QA: PASSED for the instrumented live layers through CI when the corresponding commit is green
+GitHub Pages deployment: must be verified for the current commit
+Android APK workflow: must be verified when runtime/package files change
 Real-device performance evidence: PENDING
 Project Lead performance gate: NOT YET APPROVED
