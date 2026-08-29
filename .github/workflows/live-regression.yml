@@ -66,6 +66,33 @@ jobs:
           print(f'Validated {len(scripts)} live scripts; cache={cache.group(1)}')
           PY
 
+      - name: Validate live-state persistence coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib
+          p = pathlib.Path('live/live-persistence-v13.js').read_text(encoding='utf-8')
+          required = [
+              "key:'pale_signal_live_state_v1'",
+              'stationSeen:cleanMap',
+              'archSeen:cleanMap',
+              'used:cleanMap',
+              'checkpointSave=function',
+              "addEventListener('pagehide'",
+              "addEventListener('beforeunload'",
+              'looksLikeFreshGame()',
+              'localStorage.removeItem(LP.key)'
+          ]
+          missing = [x for x in required if x not in p]
+          if missing:
+              raise SystemExit(f'live-state persistence coverage missing: {missing}')
+          lang = pathlib.Path('live/kestra-language-interior-v23.js').read_text(encoding='utf-8')
+          if "id:'language_wall'" not in lang or "id:'repair_bay'" not in lang:
+              raise SystemExit('Kestra language/workshop persistent station ids missing')
+          print('Validated live-layer save, reload, unload and fresh-game reset coverage')
+          PY
+
       - name: Validate profiler shortcut isolation
         shell: bash
         run: |
