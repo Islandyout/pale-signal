@@ -66,6 +66,23 @@ jobs:
           print(f'Validated {len(scripts)} live scripts; cache={cache.group(1)}')
           PY
 
+      - name: Validate profiler shortcut isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib
+          prototype = pathlib.Path('prototype/pale-signal.html.html').read_text(encoding='utf-8')
+          qa = pathlib.Path('live/qa-evidence-v20.js').read_text(encoding='utf-8')
+          if "e.code==='F9'" not in prototype or "cycleVisualQuality" not in prototype:
+              raise SystemExit('base F9 visual-quality control not found')
+          required = ["e.code!=='F9'", 'e.ctrlKey||e.metaKey', 'e.stopImmediatePropagation()', 'Ctrl/Cmd+F9']
+          missing = [token for token in required if token not in qa]
+          if missing:
+              raise SystemExit(f'QA profiler shortcut isolation missing tokens: {missing}')
+          print('Validated plain F9 quality control and isolated Ctrl/Cmd+F9 QA capture shortcut')
+          PY
+
       - name: Validate license ledger
         shell: bash
         run: |
