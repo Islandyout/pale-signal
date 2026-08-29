@@ -7,7 +7,7 @@
       w.eval(`(()=>{
         if(globalThis.__PALE_KESTRA_PRESENCE_V8)return;
         globalThis.__PALE_KESTRA_PRESENCE_V8=true;
-        const KP={lastT:performance.now(),fps:60,styled:false,amb:null,archFx:null,lastBell:0,lastGreet:0,nearNpc:null};
+        const KP={lastT:performance.now(),fps:60,styled:false,amb:null,archFx:null,lastBell:0,lastGreet:0,nearNpc:null,socialNext:0,social:[]};
         globalThis.PALE_KESTRA_PRESENCE=KP;
         const touch=(('ontouchstart' in window)||navigator.maxTouchPoints>0);
         const fpsNow=()=>{const p=globalThis.PALE_SHIP_POLISH;return p&&p.fps?p.fps:KP.fps;};
@@ -22,6 +22,7 @@
           const accentMats=[0x6f9087,0x8a7d60,0x596f7c,0x7e6b72].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:.72,metalness:.04}));
           const dark=new THREE.MeshStandardMaterial({color:0x223638,roughness:.9,metalness:.03});
           const skin=new THREE.MeshStandardMaterial({color:0x829083,roughness:.9,metalness:0});
+          const eyeMat=new THREE.MeshStandardMaterial({color:0x91b8ad,emissive:0x416f67,emissiveIntensity:.55,roughness:.45});
           ka.npcs.forEach((n,i)=>{
             const d=n.userData||{};const acc=accentMats[i%accentMats.length];
             if(d.torso){d.torso.scale.set(1+(i%3)*.035,.98+(i%2)*.045,.9+(i%4)*.025);d.torso.material=acc;}
@@ -30,13 +31,29 @@
             const collar=new THREE.Mesh(new THREE.TorusGeometry(.30,.045,5,10),dark);collar.position.y=1.72;collar.rotation.x=Math.PI/2;n.add(collar);
             const belt=new THREE.Mesh(new THREE.TorusGeometry(.34,.035,5,10),dark);belt.position.y=.88;belt.rotation.x=Math.PI/2;n.add(belt);
             const satchel=new THREE.Mesh(new THREE.BoxGeometry(.24,.34,.12),dark);satchel.position.set(i%2?.36:-.36,.93,.08);n.add(satchel);
-            const eye=new THREE.Mesh(new THREE.BoxGeometry(.24,.035,.035),new THREE.MeshStandardMaterial({color:0x91b8ad,emissive:0x416f67,emissiveIntensity:.55,roughness:.45}));eye.position.set(0,2.04,.25);n.add(eye);
+            const eye=new THREE.Mesh(new THREE.BoxGeometry(.24,.035,.035),eyeMat);eye.position.set(0,2.04,.25);n.add(eye);
             n.userData.__kp={mantle,collar,belt,satchel,eye,seed:i*.71};
           });
         }
 
+        function refreshSocial(ka,t){
+          if(t<KP.socialNext)return;
+          KP.socialNext=t+350;
+          KP.social.length=ka.npcs.length;
+          for(let i=0;i<ka.npcs.length;i++){
+            const n=ka.npcs[i];let social=null,sd=4.8;
+            for(let j=0;j<ka.npcs.length;j++){
+              if(j===i)continue;
+              const o=ka.npcs[j],dd=n.position.distanceTo(o.position);
+              if(dd<sd){sd=dd;social=o;}
+            }
+            KP.social[i]=social;
+          }
+        }
+
         function naturalNpcTick(t){
           const ka=globalThis.PALE_KESTRA_STREET_ARCH;if(!ka||!ka.root||!ka.root.visible)return;
+          refreshSocial(ka,t);
           let nearest=null,nd=999;
           for(let i=0;i<ka.npcs.length;i++){
             const n=ka.npcs[i],d=n.userData||{},kp=d.__kp;if(!kp)continue;
@@ -49,8 +66,8 @@
               if(to.lengthSq()>.001){to.normalize();const fwd=V3(0,0,1).applyQuaternion(n.quaternion),ang=Math.atan2(fwd.clone().cross(to).dot(up),fwd.dot(to));d.head.rotation.y=clamp(ang,-.75,.75);}
               if(d.armR)d.armR.rotation.z=-.12-Math.max(0,(6.5-dist)/6.5)*.16;
             }
-            let social=null,sd=4.8;for(let j=0;j<ka.npcs.length;j++){if(j===i)continue;const o=ka.npcs[j],dd=n.position.distanceTo(o.position);if(dd<sd){sd=dd;social=o;}}
-            if(social&&dist>7&&d.head){d.head.rotation.y=Math.sin(t*.001+kp.seed)*.22;d.armL.rotation.z=Math.sin(t*.002+kp.seed)*.08;}
+            const social=KP.social[i];
+            if(social&&dist>7&&d.head){d.head.rotation.y=Math.sin(t*.001+kp.seed)*.22;if(d.armL)d.armL.rotation.z=Math.sin(t*.002+kp.seed)*.08;}
           }
           if(nearest&&nd<4.4&&KP.nearNpc!==nearest){KP.nearNpc=nearest;if(performance.now()-KP.lastGreet>4500){KP.lastGreet=performance.now();tone(300,.055,.007,'triangle');setTimeout(()=>tone(382,.065,.006,'sine'),65);}}
           if(nd>6)KP.nearNpc=null;
