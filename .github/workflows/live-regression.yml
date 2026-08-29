@@ -7,6 +7,7 @@ on:
       - 'live/**'
       - 'index.html'
       - 'sw.js'
+      - 'production/LICENSE_LEDGER.csv'
       - '.github/workflows/live-regression.yml'
   workflow_dispatch:
 
@@ -63,6 +64,42 @@ jobs:
               print('\n'.join(errors), file=sys.stderr)
               raise SystemExit(1)
           print(f'Validated {len(scripts)} live scripts; cache={cache.group(1)}')
+          PY
+
+      - name: Validate license ledger
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import csv, pathlib, sys
+          path = pathlib.Path('production/LICENSE_LEDGER.csv')
+          if not path.is_file():
+              raise SystemExit('production/LICENSE_LEDGER.csv is missing')
+          with path.open(newline='', encoding='utf-8') as f:
+              rows = list(csv.DictReader(f))
+          required = {
+              'asset_or_tool','source_url','creator','license','commercial_use_ok',
+              'attribution_required','modified','project_location','notes'
+          }
+          if not rows:
+              raise SystemExit('license ledger has no entries')
+          missing_cols = required - set(rows[0].keys())
+          if missing_cols:
+              raise SystemExit(f'license ledger missing columns: {sorted(missing_cols)}')
+          errors = []
+          for i, row in enumerate(rows, start=2):
+              missing = [k for k in required if not (row.get(k) or '').strip()]
+              if missing:
+                  errors.append(f'row {i} missing values: {missing}')
+              if (row.get('commercial_use_ok') or '').strip().lower() != 'yes':
+                  errors.append(f'row {i} is not approved for commercial use: {row.get("asset_or_tool")}')
+          three = [r for r in rows if (r.get('asset_or_tool') or '').lower().startswith('three.js r160')]
+          if not three or three[0].get('license') != 'MIT':
+              errors.append('embedded Three.js r160 MIT provenance is not recorded')
+          if errors:
+              print('\n'.join(errors), file=sys.stderr)
+              raise SystemExit(1)
+          print(f'Validated {len(rows)} license/provenance entries; all marked commercial-use compatible')
           PY
 
       - name: Validate core shell files
