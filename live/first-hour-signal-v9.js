@@ -21,7 +21,7 @@
             if(archaeologyCount()>=3)return 5;
             if(kestraKnown())return 4;
             const known=G.known?Object.keys(G.known).length:0;
-            const sample=G.res&&Object.values(G.res).some(v=>v>0);
+            const sessionEvents=globalThis.PALE_FIRST_HOUR_EVENTS;\n            const sample=!!(sessionEvents&&sessionEvents.tethysSamples>0);
             if(sample)return 3;
             if(known>0)return 2;
             if(typeof evaLifeSupportMode==='function'){const l=evaLifeSupportMode();if(l&&l.mode)return 1;}
