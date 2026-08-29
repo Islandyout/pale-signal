@@ -21,13 +21,17 @@ The dedicated Kestra Gate D profiler is exposed as `globalThis.PALE_QA_PROFILER`
 
 `live/qa-evidence-v20.js` makes those captures practical on the actual target device instead of requiring a remote JavaScript console. Completed reports are retained in local storage (latest six captures) and shown in a copyable QA-only evidence panel.
 
+### Desktop profiler shortcut isolation
+The shipped game already uses plain **F9** to cycle visual quality. Gate D capture therefore uses **Ctrl+F9** on Windows/Linux and **Cmd+F9** on macOS. The QA evidence listener intercepts only that modified shortcut before the gameplay F9 handler, so starting or stopping a capture cannot also change the measured quality tier. Plain F9 remains the normal visual-quality control.
+
 ### USER ACTION REQUIRED — Gate D capture
 Desktop:
 1. Open the deployed Pale Signal build and reach Kestra.
-2. Press **F9** to start a 60-second capture.
-3. Traverse the ground/street area normally and include a landing-field/approach view if practical.
-4. When the result panel appears, confirm it says `VALID 60s CAPTURE` and use **COPY REPORT**.
-5. Preserve the copied report with the reference-machine model/specification and quality setting.
+2. Select and note the intended visual quality tier before measurement.
+3. Press **Ctrl+F9** (Windows/Linux) or **Cmd+F9** (macOS) to start a 60-second capture. Do not press plain F9 during the run.
+4. Traverse the ground/street area normally and include a landing-field/approach view if practical.
+5. When the result panel appears, confirm it says `VALID 60s CAPTURE` and use **COPY REPORT**.
+6. Preserve the copied report with the reference-machine model/specification and quality setting.
 
 Target Android phone:
 1. Open the installed current Android build and reach Kestra.
@@ -82,6 +86,7 @@ Device-specific evidence is mandatory. Do not claim universal 60 FPS.
 - E still interacts with Talari/civic stations/archaeology when those are nearest and valid
 - mobile action button still routes to the same interaction chain
 - Reduce Shake still suppresses camera interference
+- plain F9 still cycles visual quality; Ctrl/Cmd+F9 starts/stops the dedicated Gate D capture without changing quality
 - PWA and Android package the same live scripts
 
 ## Gate status
