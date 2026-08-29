@@ -77,7 +77,7 @@ jobs:
               'live/kestra-language-interior-v23.js': ["id:'language_wall'", "id:'repair_bay'"],
               'live/quality-lift-v24.js': ['PALE_QUALITY_LIFT'],
               'live/visual-coherence-v25.js': ['PALE_VISUAL_COHERENCE'],
-              'live/accessibility-recovery-v26.js': ['PALE_ACCESSIBILITY_RECOVERY'],
+              'live/accessibility-recovery-v26.js': ['PALE_ACCESS_RECOVERY'],
               'live/first-hour-gate-v27.js': ['PALE_FIRST_HOUR_GATE'],
               'live/audio-mix-v28.js': ['PALE_AUDIO_MIX'],
               'live/animation-refine-v29.js': ['PALE_ANIMATION_REFINE'],
