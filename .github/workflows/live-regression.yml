@@ -66,6 +66,39 @@ jobs:
           print(f'Validated {len(scripts)} live scripts; cache={cache.group(1)}')
           PY
 
+      - name: Validate vertical-slice quality contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib
+          contracts = {
+              'live/tethys-weather-scanner-v22.js': ['PALE_TETHYS_WEATHER_SCANNER', 'confidence'],
+              'live/kestra-language-interior-v23.js': ["id:'language_wall'", "id:'repair_bay'"],
+              'live/quality-lift-v24.js': ['PALE_QUALITY_LIFT'],
+              'live/visual-coherence-v25.js': ['PALE_VISUAL_COHERENCE'],
+              'live/accessibility-recovery-v26.js': ['PALE_ACCESSIBILITY_RECOVERY'],
+              'live/first-hour-gate-v27.js': ['PALE_FIRST_HOUR_GATE'],
+              'live/audio-mix-v28.js': ['PALE_AUDIO_MIX'],
+              'live/animation-refine-v29.js': ['PALE_ANIMATION_REFINE'],
+              'live/mobile-usability-v30.js': ['PALE_MOBILE_USABILITY'],
+              'live/pacing-recovery-v31.js': ['PALE_PACING_RECOVERY'],
+          }
+          errors=[]
+          for name,tokens in contracts.items():
+              p=pathlib.Path(name)
+              if not p.is_file():
+                  errors.append(f'missing vertical-slice contract file: {name}')
+                  continue
+              text=p.read_text(encoding='utf-8')
+              missing=[t for t in tokens if t not in text]
+              if missing:
+                  errors.append(f'{name} missing contract tokens: {missing}')
+          if errors:
+              raise SystemExit('\n'.join(errors))
+          print(f'Validated {len(contracts)} late-stage vertical-slice quality contracts')
+          PY
+
       - name: Validate live-state persistence coverage
         shell: bash
         run: |
