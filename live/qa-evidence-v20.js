@@ -60,7 +60,12 @@
           P.start(label,60000);
           if(typeof toast==='function')toast('KESTRA QA CAPTURE STARTED · 60 SECONDS','good');
         }
-        addEventListener('keydown',e=>{if(e.code==='F9'&&!touch){e.preventDefault();startDefault();}},true);
+        addEventListener('keydown',e=>{
+          if(e.code!=='F9'||touch||!(e.ctrlKey||e.metaKey)||e.repeat)return;
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          startDefault();
+        },true);
         addEventListener('touchstart',e=>{
           if(!touch||P.active||!e.touches||e.touches.length!==1)return;
           const t=e.touches[0];if(t.clientX>82||t.clientY>82)return;
@@ -71,7 +76,7 @@
         setInterval(()=>{if(P.lastReport&&P.lastReport!==Q.lastSaved)persist(P.lastReport);},750);
         Q.list=()=>read();Q.latest=()=>read().slice(-1)[0]||null;Q.showLatest=()=>{const e=Q.latest();if(e)show(e);return e;};Q.clear=()=>{write([]);Q.lastSaved=null;};
         P.evidence=Q;
-        P.instructions+=' Desktop: F9 starts/stops a 60s capture. Touch: hold the top-left corner for 1.8s. Completed reports persist locally and display a copyable evidence panel.';
+        P.instructions+=' Desktop: Ctrl/Cmd+F9 starts/stops a 60s capture without changing the visual-quality tier. Touch: hold the top-left corner for 1.8s. Completed reports persist locally and display a copyable evidence panel.';
         console.info('PALE SIGNAL QA EVIDENCE READY',P.instructions);
       })()`);
     }catch(err){console.error('Pale Signal QA evidence v20 patch failed',err);}
