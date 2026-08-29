@@ -11,18 +11,19 @@
         globalThis.PALE_INTERACTION_FRICTION=IF;
         const touch=(('ontouchstart' in window)||navigator.maxTouchPoints>0);
 
-        function rootOffset(root){return root&&root.position?root.position:V3();}
-        function distTo(g,root){if(!g||!g.position||!ex||!ex.pos)return Infinity;return g.position.clone().add(rootOffset(root)).distanceTo(ex.pos);}
+        // Gameplay interaction distances are authoritative in planet/gameplay-local space.
+        // Render roots may shift for origin management and must never affect focus arbitration.
+        function distTo(g){if(!g||!g.position||!ex||!ex.pos)return Infinity;return g.position.distanceTo(ex.pos);}
         function candidates(){
           if(G.mode!=='eva')return [];
           const out=[];
           const F=globalThis.PALE_FIRST_HOUR_SIGNAL;
-          if(F&&F.verbRoot&&F.verbRoot.visible)for(const g of F.verbs||[]){const d=distTo(g,F.verbRoot);if(d<4.8)out.push({kind:'verb',g,root:F.verbRoot,d,label:(g.userData&&g.userData.verb)?(g.userData.verb.verb+' '+g.userData.verb.name):'interact'});}
+          if(F&&F.verbRoot&&F.verbRoot.visible)for(const g of F.verbs||[]){const d=distTo(g);if(d<4.8)out.push({kind:'verb',g,root:F.verbRoot,d,label:(g.userData&&g.userData.verb)?(g.userData.verb.verb+' '+g.userData.verb.name):'interact'});}
           const K=globalThis.PALE_KESTRA_STREET_ARCH;
-          if(K&&K.archRoot&&K.archRoot.visible)for(const g of K.arch||[]){const d=distTo(g,K.archRoot);if(d<4.9)out.push({kind:'arch',g,root:K.archRoot,d,label:'inspect '+((g.userData&&g.userData.arch&&g.userData.arch.name)||'evidence')});}
-          if(K&&K.root&&K.root.visible)for(const g of K.npcs||[]){const d=distTo(g,K.root);if(d<4.5)out.push({kind:'npc',g,root:K.root,d,label:'speak with Talari resident'});}
+          if(K&&K.archRoot&&K.archRoot.visible)for(const g of K.arch||[]){const d=distTo(g);if(d<4.9)out.push({kind:'arch',g,root:K.archRoot,d,label:'inspect '+((g.userData&&g.userData.arch&&g.userData.arch.name)||'evidence')});}
+          if(K&&K.root&&K.root.visible)for(const g of K.npcs||[]){const d=distTo(g);if(d<4.5)out.push({kind:'npc',g,root:K.root,d,label:'speak with Talari resident'});}
           const E=globalThis.PALE_EVA_WILDLIFE_KESTRA;
-          if(E&&E.kestraRoot&&E.kestraRoot.visible)for(const g of E.stations||[]){const d=distTo(g,E.kestraRoot);if(d<5.0)out.push({kind:'station',g,root:E.kestraRoot,d,label:'review '+((g.userData&&g.userData.station&&g.userData.station.name)||'civic record')});}
+          if(E&&E.kestraRoot&&E.kestraRoot.visible)for(const g of E.stations||[]){const d=distTo(g);if(d<5.0)out.push({kind:'station',g,root:E.kestraRoot,d,label:'review '+((g.userData&&g.userData.station&&g.userData.station.name)||'civic record')});}
           out.sort((a,b)=>a.d-b.d);return out;
         }
         function nearest(){const c=candidates();return c.length?c[0]:null;}
