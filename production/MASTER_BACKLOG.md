@@ -12,6 +12,7 @@ Status reflects the current browser/PWA/Android vertical-slice implementation. C
 - [x] Create contextual HUD information architecture.
 - [x] Design physical resource gathering loop for one Tethys fuel resource.
 - [x] Build first-hour onboarding that teaches by interaction rather than text walls.
+- [x] Replace the reference-only Survey Academy with playable lessons completed through real gameplay mechanics.
 - [x] Establish audio pipeline and first-pass Tethys/ship soundscape.
 - [x] Establish animation pipeline and EVA locomotion set for the prototype; authored skeletal animation is assigned to production migration.
 - [x] Define Tethys/Kestra visual bible with authored silhouette/material/lighting targets. See `TETHYS_KESTRA_VISUAL_BIBLE.md`.
@@ -27,6 +28,9 @@ Status reflects the current browser/PWA/Android vertical-slice implementation. C
 - [x] Settlement life: schedules, ambient conversations, visible jobs, vestibule/interior presentation.
 - [x] One Talari language-learning interaction with partial translation.
 - [x] One historical contradiction resolved through multiple evidence sources.
+- [x] Authored Kestra collision proxies implemented for solid hero geometry.
+- [x] Authored Kestra terrain-conformance pass implemented.
+- [ ] Fix first-hour director sample beat so pre-existing inventory cannot count as a newly collected Tethys sample.
 - [ ] Mobile-specific HUD and touch layout validated on low/mid/high physical device tiers. Self-audit and profiler are implemented; hardware evidence is still required.
 
 ### Code-side finalization
@@ -48,6 +52,7 @@ Status reflects the current browser/PWA/Android vertical-slice implementation. C
 2. Desktop reference profiling capture.
 3. Current APK physical install/update/launch test.
 4. Full first-hour human playthrough including save/reload/new-game and frustration notes.
+5. Physical Kestra traversal/approach check confirming authored collision and terrain conformance behave visually as intended.
 
 ### Frozen until slice validation passes
 - New planets
