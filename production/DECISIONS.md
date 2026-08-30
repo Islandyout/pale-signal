@@ -21,3 +21,8 @@ Only ChatGPT and Claude may be paid. All other production dependencies must be f
 **Status:** Accepted
 
 The next premium-quality slice centers on Tethys and one dense Kestra district. Breadth is deliberately reduced to increase depth and polish.
+
+## D-005 — Tutorials must be playable, not text-gated
+**Status:** Accepted
+
+Tutorial completion must be driven by the player performing the real mechanic with the normal gameplay controls. Text is limited to concise objective/control guidance and reference material. Tutorial systems must not teleport, auto-fly, auto-gather, or substitute a tutorial-only mechanic for the production verb. The Survey Academy may organize existing mechanics into lessons/courses, but it must not expand game scope to manufacture tutorial content.
