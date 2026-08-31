@@ -11,17 +11,20 @@ const CATALOG := {
 }
 
 static func instantiate_or_fallback(key: String, fallback: Node3D) -> Node3D:
-	var path: String = CATALOG.get(key, "")
+	var path: String = str(CATALOG.get(key, ""))
 	if not path.is_empty() and ResourceLoader.exists(path):
-		var packed := load(path)
-		if packed is PackedScene:
-			var instance := packed.instantiate()
-			fallback.queue_free()
-			return instance
+		var resource: Resource = load(path)
+		if resource is PackedScene:
+			var packed_scene: PackedScene = resource as PackedScene
+			var node: Node = packed_scene.instantiate()
+			if node is Node3D:
+				fallback.queue_free()
+				return node as Node3D
 	return fallback
 
 static func missing_assets() -> PackedStringArray:
 	var missing := PackedStringArray()
 	for key in CATALOG:
-		if not ResourceLoader.exists(CATALOG[key]): missing.append(key)
+		var path: String = str(CATALOG[key])
+		if not ResourceLoader.exists(path): missing.append(str(key))
 	return missing
