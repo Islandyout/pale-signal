@@ -22,6 +22,8 @@ static func ensure_actions() -> void:
 	_bind_key("route_next", KEY_TAB)
 	_bind_key("fabricator", KEY_U)
 	_bind_key("tutorial", KEY_F2)
+	_bind_key("tutorial_reset", KEY_F3)
+	_bind_key("tutorial_skip", KEY_F4)
 	_bind_key("cutscene_skip", KEY_ESCAPE)
 	_bind_mouse("scan", MOUSE_BUTTON_RIGHT)
 
