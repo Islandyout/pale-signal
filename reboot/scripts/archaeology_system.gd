@@ -16,7 +16,7 @@ var completed := false
 
 func begin() -> void:
 	# Preserve evidence_scanned when the player scanned the target before
-	# interacting with it. Reset/skip explicitly clear the state through cancel().
+	# interacting with it. Tutorial reset explicitly clears state through cancel().
 	active = true
 	completed = false
 	alignment = 0.15
@@ -31,7 +31,7 @@ func mark_scanned() -> void:
 func tick(delta: float) -> void:
 	if not active or completed:
 		return
-	if Input.is_action_just_pressed("tutorial_reset") or Input.is_action_just_pressed("tutorial_skip"):
+	if Input.is_action_just_pressed("tutorial_reset"):
 		cancel()
 		return
 	var axis := Input.get_axis("move_left", "move_right")
