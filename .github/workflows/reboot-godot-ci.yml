@@ -93,13 +93,13 @@ jobs:
     needs: contracts-and-web
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/download-artifact@v4
         with:
           name: pale-signal-reboot-web
           path: exported-web
-      - uses: actions/checkout@v4
-        with:
-          ref: main
       - name: Publish isolated reboot preview
         run: |
           set -eu
