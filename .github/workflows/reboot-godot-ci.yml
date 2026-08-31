@@ -18,8 +18,15 @@ jobs:
       image: barichello/godot-ci:4.7.2
     steps:
       - uses: actions/checkout@v4
-      - name: Import project
-        run: godot --headless --path reboot --editor --quit
+      - name: Import project and fail on parser errors
+        run: |
+          set -eu
+          out="$(godot --headless --path reboot --editor --quit 2>&1 || true)"
+          printf '%s\n' "$out"
+          if printf '%s\n' "$out" | grep -E 'SCRIPT ERROR:|Parse Error:|Compile Error:|Failed to load script'; then
+            echo 'Godot parser/compile error detected.' >&2
+            exit 1
+          fi
       - name: Run mechanic contracts
         run: godot --headless --path reboot --script res://tests/run_tests.gd
       - name: Verify GLB adapter paths
@@ -31,8 +38,24 @@ jobs:
           ! grep -R 'global_position *=.*nav_target' reboot/scripts/tutorial_director.gd
           grep -q 'event("launched")' reboot/scripts/game_root.gd
           grep -q 'event("touchdown"' reboot/scripts/game_root.gd
+      - name: Prepare Godot export templates
+        run: |
+          set -eu
+          mkdir -p "$HOME/.local/share/godot/export_templates"
+          src=""
+          for p in /root/.local/share/godot/export_templates/4.7.2.stable /root/.local/share/godot/export_templates/4.7.2 /opt/godot/export_templates/4.7.2.stable /opt/godot/export_templates/4.7.2; do
+            if [ -d "$p" ]; then src="$p"; break; fi
+          done
+          if [ -z "$src" ]; then
+            src="$(find / -type d \( -name '4.7.2.stable' -o -name '4.7.2' \) -path '*export_templates*' 2>/dev/null | head -n 1 || true)"
+          fi
+          test -n "$src"
+          rm -rf "$HOME/.local/share/godot/export_templates/4.7.2.stable"
+          cp -R "$src" "$HOME/.local/share/godot/export_templates/4.7.2.stable"
+          test -f "$HOME/.local/share/godot/export_templates/4.7.2.stable/web_nothreads_release.zip"
       - name: Export Web build
         run: |
+          set -eu
           mkdir -p reboot/build/web
           godot --headless --path reboot --export-release "Web" build/web/index.html
           test -f reboot/build/web/index.html
