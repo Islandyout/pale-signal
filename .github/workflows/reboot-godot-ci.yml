@@ -15,7 +15,7 @@ permissions:
   contents: write
 
 jobs:
-  contracts-and-web:
+  contracts-and-exports:
     runs-on: ubuntu-latest
     container:
       image: barichello/godot-ci:4.7.2
@@ -72,6 +72,7 @@ jobs:
           rm -rf "$HOME/.local/share/godot/export_templates/4.7.2.stable"
           cp -R "$src" "$HOME/.local/share/godot/export_templates/4.7.2.stable"
           test -f "$HOME/.local/share/godot/export_templates/4.7.2.stable/web_nothreads_release.zip"
+          test -f "$HOME/.local/share/godot/export_templates/4.7.2.stable/android_debug.apk"
       - name: Export Web build
         run: |
           set -eu
@@ -81,16 +82,31 @@ jobs:
           test -f reboot/build/web/index.wasm
           test -f reboot/build/web/index.pck
           printf '%s\n' "$GITHUB_SHA" > reboot/build/web/BUILD_SOURCE.txt
+      - name: Export Android debug APK
+        run: |
+          set -eu
+          mkdir -p reboot/build/android
+          godot --headless --path reboot --export-debug "Android Debug" build/android/PaleSignal-debug.apk --verbose
+          test -s reboot/build/android/PaleSignal-debug.apk
+          printf '%s\n' "$GITHUB_SHA" > reboot/build/android/BUILD_SOURCE.txt
       - name: Upload playable Web build
         uses: actions/upload-artifact@v4
         with:
           name: pale-signal-reboot-web
           path: reboot/build/web
           if-no-files-found: error
+      - name: Upload Android debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: pale-signal-reboot-android-debug
+          path: |
+            reboot/build/android/PaleSignal-debug.apk
+            reboot/build/android/BUILD_SOURCE.txt
+          if-no-files-found: error
 
   publish-preview:
     if: github.event_name == 'push' && github.ref == 'refs/heads/reboot-godot'
-    needs: contracts-and-web
+    needs: contracts-and-exports
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
