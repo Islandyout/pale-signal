@@ -18,6 +18,10 @@ jobs:
       image: barichello/godot-ci:4.7.2
     steps:
       - uses: actions/checkout@v4
+      - name: Install deterministic asset-fetch tooling
+        run: |
+          apt-get update -qq
+          DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3 ca-certificates
       - name: Fetch audited CC0 production assets
         run: |
           set -eu
