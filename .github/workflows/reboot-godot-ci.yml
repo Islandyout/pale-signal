@@ -25,6 +25,25 @@ jobs:
         run: |
           apt-get update -qq
           DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3 ca-certificates
+      - name: Configure Godot Android toolchain
+        run: |
+          set -eu
+          test -x /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+          test -d /usr/lib/android-sdk
+          test -f /root/debug.keystore
+          mkdir -p "$HOME/.config/godot"
+          printf '%s\n' \
+            '[gd_resource type="EditorSettings" format=3]' \
+            '' \
+            '[resource]' \
+            'export/android/java_sdk_path = "/usr/lib/jvm/java-17-openjdk-amd64"' \
+            'export/android/android_sdk_path = "/usr/lib/android-sdk"' \
+            'export/android/debug_keystore = "/root/debug.keystore"' \
+            'export/android/debug_keystore_user = "androiddebugkey"' \
+            'export/android/debug_keystore_pass = "android"' \
+            > "$HOME/.config/godot/editor_settings-4.7.tres"
+          export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+          "$JAVA_HOME/bin/java" -version
       - name: Fetch audited CC0 production assets
         run: |
           set -eu
@@ -83,6 +102,8 @@ jobs:
           test -f reboot/build/web/index.pck
           printf '%s\n' "$GITHUB_SHA" > reboot/build/web/BUILD_SOURCE.txt
       - name: Export Android debug APK
+        env:
+          JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
         run: |
           set -eu
           mkdir -p reboot/build/android
