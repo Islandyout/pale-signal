@@ -1,0 +1,14 @@
+# Pale Signal Reboot — Mechanic Contracts
+
+These are hard regression contracts. A feature is not allowed to violate them even if a visual or tutorial shortcut would be easier.
+
+1. **Continuous flight:** launch, atmospheric flight, atmosphere-to-space transition, approach and landing use the same live ship transform and controller. A cutscene may frame a lesson but may never teleport the ship to satisfy it.
+2. **Camera independence:** looking around never steers the ship. Ship rotation comes from explicit steering input only.
+3. **VTOL independence:** low-speed vertical lift is independent of nose pitch. The player never needs to point the ship 90° upward just to leave the ground.
+4. **Scanning is identification, not harvesting:** scanning may identify and analyze. A physical resource enters inventory only through a separate collection interaction.
+5. **Tutorial parity:** a lesson completes only when the production mechanic emits evidence that the player performed it. No “Next” button can complete a mechanic.
+6. **Skippable tutorial cutscenes:** tutorial camera moments are always skippable and cannot substitute for player actions.
+7. **Archaeology is reconstruction:** evidence must be scanned/inspected and physically aligned/combined before a conclusion is granted.
+8. **Fallback-safe art:** missing GLB assets may reduce visual quality in development but must not break collision, input, tutorial progression or core mechanics.
+9. **Mobile clarity before effects:** reduce optional actors/VFX before reducing interface legibility or making controls too small.
+10. **State ownership:** each mechanic owns its state in one script/system; tutorial/UI reads signals and may not mutate gameplay state to force completion.
