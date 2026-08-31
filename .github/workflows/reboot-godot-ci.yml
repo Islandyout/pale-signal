@@ -1,0 +1,33 @@
+name: Reboot Godot CI
+
+on:
+  push:
+    branches: [reboot-godot]
+    paths:
+      - 'reboot/**'
+      - '.github/workflows/reboot-godot-ci.yml'
+  pull_request:
+    paths:
+      - 'reboot/**'
+      - '.github/workflows/reboot-godot-ci.yml'
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Import project
+        run: godot --headless --path reboot --editor --quit
+      - name: Run mechanic contracts
+        run: godot --headless --path reboot --script res://tests/run_tests.gd
+      - name: Verify GLB adapter paths
+        run: |
+          grep -q 'ship_player.glb' reboot/scripts/asset_loader.gd
+          grep -q 'humanoid_animations.glb' reboot/scripts/asset_loader.gd
+      - name: Verify tutorial cannot auto-complete flight
+        run: |
+          ! grep -R 'global_position *=.*nav_target' reboot/scripts/tutorial_director.gd
+          grep -q 'event("launched")' reboot/scripts/game_root.gd
+          grep -q 'event("touchdown"' reboot/scripts/game_root.gd
