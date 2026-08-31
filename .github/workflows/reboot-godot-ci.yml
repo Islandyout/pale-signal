@@ -18,6 +18,15 @@ jobs:
       image: barichello/godot-ci:4.7.2
     steps:
       - uses: actions/checkout@v4
+      - name: Fetch audited CC0 production assets
+        run: |
+          set -eu
+          python3 reboot/tools/fetch_cc0_assets.py
+          test -f reboot/assets/imported/ship_player.gltf
+          test -f reboot/assets/imported/eva_suit.glb
+          test -f reboot/assets/imported/talari_civilian.glb
+          test -f reboot/assets/imported/kestra_module.glb
+          test -f reboot/assets/imported/humanoid_animations.glb
       - name: Import project and fail on parser errors
         run: |
           set -eu
@@ -27,12 +36,15 @@ jobs:
             echo 'Godot parser/compile error detected.' >&2
             exit 1
           fi
+      - name: Verify real GLB and glTF imports
+        run: godot --headless --path reboot --script res://tests/asset_import_test.gd
       - name: Run mechanic contracts
         run: godot --headless --path reboot --script res://tests/run_tests.gd
       - name: Verify GLB adapter paths
         run: |
-          grep -q 'ship_player.glb' reboot/scripts/asset_loader.gd
+          grep -q 'ship_player.gltf' reboot/scripts/asset_loader.gd
           grep -q 'humanoid_animations.glb' reboot/scripts/asset_loader.gd
+          grep -q 'talari_civilian.glb' reboot/scripts/asset_loader.gd
       - name: Verify tutorial cannot auto-complete flight
         run: |
           ! grep -R 'global_position *=.*nav_target' reboot/scripts/tutorial_director.gd
@@ -57,7 +69,7 @@ jobs:
         run: |
           set -eu
           mkdir -p reboot/build/web
-          godot --headless --path reboot --export-release "Web" build/web/index.html
+          godot --headless --path reboot --export-release "Web" build/web/index.html --verbose
           test -f reboot/build/web/index.html
           test -f reboot/build/web/index.wasm
           test -f reboot/build/web/index.pck
