@@ -2,7 +2,7 @@ class_name AssetLoader
 extends RefCounted
 
 const CATALOG := {
-	"ship": "res://assets/imported/ship_player.glb",
+	"ship": "res://assets/imported/ship_player.gltf",
 	"eva": "res://assets/imported/eva_suit.glb",
 	"talari": "res://assets/imported/talari_civilian.glb",
 	"kestra": "res://assets/imported/kestra_module.glb",
@@ -19,8 +19,21 @@ static func instantiate_or_fallback(key: String, fallback: Node3D) -> Node3D:
 			var node: Node = packed_scene.instantiate()
 			if node is Node3D:
 				fallback.queue_free()
-				return node as Node3D
+				var node_3d := node as Node3D
+				_configure_import(key, node_3d)
+				return node_3d
 	return fallback
+
+static func _configure_import(key: String, node: Node3D) -> void:
+	# Import transforms live here rather than in gameplay controllers, keeping
+	# art replacement isolated from mechanics.
+	match key:
+		"ship":
+			node.scale = Vector3.ONE * 0.72
+		"eva", "talari":
+			node.scale = Vector3.ONE
+		"kestra":
+			node.scale = Vector3.ONE * 2.0
 
 static func missing_assets() -> PackedStringArray:
 	var missing := PackedStringArray()
