@@ -11,9 +11,13 @@ var evidence_scanned := false
 var completed := false
 
 func begin() -> void:
-	if completed: return
+	# Each evidence site is a new reconstruction problem. The caller decides
+	# whether the evidence has already been scanned for this specific site.
 	active = true
+	completed = false
+	evidence_scanned = false
 	alignment = 0.15
+	target_alignment = 0.52 + randf() * 0.31
 	reconstruction_progress.emit(0.0)
 
 func mark_scanned() -> void:
@@ -31,3 +35,9 @@ func tick(delta: float) -> void:
 		active = false
 		reconstruction_progress.emit(1.0)
 		reconstruction_complete.emit()
+
+func cancel() -> void:
+	active = false
+	evidence_scanned = false
+	completed = false
+	reconstruction_progress.emit(0.0)
