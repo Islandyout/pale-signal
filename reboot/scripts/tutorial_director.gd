@@ -15,7 +15,7 @@ const LESSONS := [
 	{"id":"air", "title":"VERIFY THE AIR", "detail":"Look into open sky and hold SCAN until the atmospheric spectrum resolves."},
 	{"id":"scan", "title":"SCAN A SPECIMEN", "detail":"Centre the field specimen and hold SCAN. Scanning identifies; it does not collect."},
 	{"id":"collect", "title":"PHYSICAL COLLECTION", "detail":"Walk to the identified sample and interact to physically collect it."},
-	{"id":"archaeology", "title":"RECONSTRUCT EVIDENCE", "detail":"Scan the foundation. Align left/right until the lock zone is reached, then press E. F3 resets this step; F4 skips it."},
+	{"id":"archaeology", "title":"RECONSTRUCT EVIDENCE", "detail":"Scan the foundation. Align left/right until the lock zone is reached, then press E. F3 resets this step."},
 	{"id":"board", "title":"BOARD THE SHIP", "detail":"Return to the ship and interact within boarding range."},
 	{"id":"launch", "title":"MANUAL VTOL LAUNCH", "detail":"Raise throttle. Lift is independent of nose pitch; no cutscene moves the ship."},
 	{"id":"space", "title":"ATMOSPHERE TO SPACE", "detail":"Climb continuously through the atmosphere ceiling using the real flight model."},
@@ -33,8 +33,6 @@ var _nav_seen := {}
 func _process(_delta: float) -> void:
 	if Input.is_action_just_pressed("tutorial_reset"):
 		reset_current()
-	if Input.is_action_just_pressed("tutorial_skip"):
-		skip_current()
 
 func start() -> void:
 	request_intro_cutscene.emit()
@@ -91,12 +89,13 @@ func reset_current() -> void:
 	lesson_reset.emit(id)
 	_emit_current(0.0)
 
-func skip_current() -> void:
-	if index >= LESSONS.size(): return
-	var id: String = LESSONS[index].id
-	skipped[id] = true
-	lesson_skipped.emit(id)
-	_complete()
+func skip_current() -> bool:
+	# Production mechanic lessons are intentionally non-skippable. Keep this
+	# compatibility method safe for old callers; only cinematic framing is
+	# skippable through the separate cutscene_skip action owned by GameRoot.
+	if index < LESSONS.size():
+		_emit_current()
+	return false
 
 func _complete() -> void:
 	var id: String = LESSONS[index].id
