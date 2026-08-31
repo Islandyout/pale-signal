@@ -7,6 +7,7 @@ func _init() -> void:
 	_test_archaeology_requires_scan_and_alignment()
 	_test_archaeology_preserves_pre_scan()
 	_test_archaeology_has_recovery_contract()
+	_test_tutorial_mechanics_cannot_be_skipped()
 	_test_vtol_is_pitch_independent_contract()
 	_test_camera_steering_contract()
 	_test_campaign_fragment_unlock_chain()
@@ -56,9 +57,26 @@ func _test_archaeology_has_recovery_contract() -> void:
 	var archaeology_source := FileAccess.get_file_as_string("res://scripts/archaeology_system.gd")
 	var tutorial_source := FileAccess.get_file_as_string("res://scripts/tutorial_director.gd")
 	var input_source := FileAccess.get_file_as_string("res://scripts/input_bootstrap.gd")
-	_assert(archaeology_source.contains("tutorial_reset") and archaeology_source.contains("tutorial_skip"), "archaeology must release active state on tutorial reset/skip")
-	_assert(tutorial_source.contains("reset_current") and tutorial_source.contains("skip_current"), "tutorial must expose reset and skip recovery")
-	_assert(input_source.contains("tutorial_reset") and input_source.contains("tutorial_skip"), "reset and skip actions must be bound")
+	_assert(archaeology_source.contains("tutorial_reset"), "archaeology must release active state on tutorial reset")
+	_assert(not archaeology_source.contains("tutorial_skip"), "cinematic skip must not cancel or bypass archaeology")
+	_assert(tutorial_source.contains("reset_current"), "tutorial must expose reset recovery")
+	_assert(input_source.contains("tutorial_reset"), "tutorial reset action must be bound")
+	_assert(input_source.contains("cutscene_skip"), "cutscenes must retain an explicit skip action")
+
+func _test_tutorial_mechanics_cannot_be_skipped() -> void:
+	var t := TutorialDirector.new()
+	var before := t.index
+	var skipped := t.skip_current()
+	_assert(not skipped, "tutorial mechanic skip must be rejected")
+	_assert(t.index == before, "skip request must not advance a production mechanic lesson")
+	_assert(t.completed.is_empty(), "skip request must not fabricate mechanic completion")
+	var tutorial_source := FileAccess.get_file_as_string("res://scripts/tutorial_director.gd")
+	var input_source := FileAccess.get_file_as_string("res://scripts/input_bootstrap.gd")
+	var hud_source := FileAccess.get_file_as_string("res://scripts/production_hud.gd")
+	_assert(not tutorial_source.contains("Input.is_action_just_pressed(\"tutorial_skip\")"), "tutorial director must not consume a gameplay skip action")
+	_assert(not input_source.contains("_bind_key(\"tutorial_skip\""), "F4 must not bind a mechanic-skip action")
+	_assert(hud_source.contains("SKIP CUTSCENE"), "HUD skip control must be labeled for cinematics only")
+	t.free()
 
 func _test_vtol_is_pitch_independent_contract() -> void:
 	var source := FileAccess.get_file_as_string("res://scripts/ship_controller.gd")
