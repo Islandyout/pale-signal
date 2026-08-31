@@ -5,6 +5,7 @@ var ship: ShipController
 var scanner: ScannerSystem
 var archaeology: ArchaeologySystem
 var tutorial: TutorialDirector
+var mobile_controls: MobileControls
 var sample: Interactable
 var ruin: Interactable
 var hud_title: Label
@@ -188,7 +189,10 @@ func _build_ui() -> void:
 	var footer := Label.new()
 	footer.position = Vector2(18, 650)
 	footer.text = "WASD MOVE/THROTTLE · MOUSE LOOK (never steers ship) · F/RMB SCAN · E INTERACT · N NAV · X BRAKE · F2 TUTORIAL"
+	footer.visible = not DisplayServer.is_touchscreen_available()
 	layer.add_child(footer)
+	mobile_controls = MobileControls.new()
+	layer.add_child(mobile_controls)
 
 func _connect_systems() -> void:
 	eva.moved.connect(func(d): tutorial.event("eva_moved", d))
@@ -206,6 +210,12 @@ func _connect_systems() -> void:
 	tutorial.lesson_completed.connect(func(_id): SaveSystem.save_state({"tutorial": tutorial.snapshot()}))
 	tutorial.request_intro_cutscene.connect(_play_intro_cutscene)
 	tutorial.request_reveal_cutscene.connect(_play_reveal_cutscene)
+	mobile_controls.look_delta.connect(_on_mobile_look)
+
+func _on_mobile_look(delta_pixels: Vector2) -> void:
+	if cutscene_active: return
+	if mode == "eva": eva.apply_look(delta_pixels)
+	else: ship.apply_camera_look(delta_pixels)
 
 func _on_subject_scanned(target: Interactable) -> void:
 	if target == sample: tutorial.event("subject_scanned", target)
@@ -245,11 +255,15 @@ func _set_mode(value: String) -> void:
 	var ship_active := value == "ship"
 	eva.set_active(not ship_active)
 	ship.set_active(ship_active)
+	if mobile_controls: mobile_controls.set_mode(value)
 	if ship_active: eva.position = ship.position + Vector3(0, 1.1, 0)
 	else: eva.position = ship.position + Vector3(0, 1.0, 4.8)
 
 func _play_intro_cutscene() -> void:
 	cutscene_active = true
+	eva.enabled = false
+	ship.enabled = false
+	if mobile_controls: mobile_controls.visible = false
 	intro_camera.current = true
 	eva.camera.current = false
 	ship.camera.current = false
@@ -261,6 +275,9 @@ func _play_intro_cutscene() -> void:
 
 func _play_reveal_cutscene() -> void:
 	cutscene_active = true
+	eva.enabled = false
+	ship.enabled = false
+	if mobile_controls: mobile_controls.visible = false
 	intro_camera.current = true
 	eva.camera.current = false
 	intro_camera.global_position = ruin.global_position + Vector3(6, 4, 7)
@@ -273,5 +290,5 @@ func _finish_cutscene() -> void:
 	if _intro_tween and _intro_tween.is_running(): _intro_tween.kill()
 	cutscene_active = false
 	intro_camera.current = false
-	if mode == "eva": eva.camera.current = true
-	else: ship.camera.current = true
+	_set_mode(mode)
+	if mobile_controls: mobile_controls.visible = DisplayServer.is_touchscreen_available()
