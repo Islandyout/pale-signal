@@ -8,6 +8,7 @@ func _init() -> void:
 	_test_archaeology_preserves_pre_scan()
 	_test_archaeology_has_recovery_contract()
 	_test_tutorial_mechanics_cannot_be_skipped()
+	_test_tutorial_nav_requires_full_cue_set()
 	_test_vtol_is_pitch_independent_contract()
 	_test_camera_steering_contract()
 	_test_campaign_fragment_unlock_chain()
@@ -76,6 +77,18 @@ func _test_tutorial_mechanics_cannot_be_skipped() -> void:
 	_assert(not tutorial_source.contains("Input.is_action_just_pressed(\"tutorial_skip\")"), "tutorial director must not consume a gameplay skip action")
 	_assert(not input_source.contains("_bind_key(\"tutorial_skip\""), "F4 must not bind a mechanic-skip action")
 	_assert(hud_source.contains("SKIP CUTSCENE"), "HUD skip control must be labeled for cinematics only")
+	t.free()
+
+func _test_tutorial_nav_requires_full_cue_set() -> void:
+	var t := TutorialDirector.new()
+	t.index = 9
+	for state in ["TURN", "BURN", "COAST", "BRAKE"]:
+		t.event("nav_state", state)
+	_assert(t.index == 9, "navigation lesson must not complete before all five production cues are observed")
+	_assert(not t.completed.has("nav"), "partial navigation cue coverage must not fabricate lesson completion")
+	t.event("nav_state", "APPROACH")
+	_assert(t.index == 10, "navigation lesson must complete after TURN/BURN/COAST/BRAKE/APPROACH are all observed")
+	_assert(t.completed.has("nav"), "full navigation cue coverage should complete the navigation lesson")
 	t.free()
 
 func _test_vtol_is_pitch_independent_contract() -> void:

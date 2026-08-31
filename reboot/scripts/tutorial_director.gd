@@ -74,8 +74,8 @@ func event(name: String, payload = null) -> void:
 				var score := 0
 				for state in ["TURN", "BURN", "COAST", "BRAKE", "APPROACH"]:
 					if _nav_seen.has(state): score += 1
-				_emit_current(score / 3.0)
-				if score >= 3: _complete()
+				_emit_current(float(score) / 5.0)
+				if score >= 5: _complete()
 		"landing":
 			if name == "touchdown" and payload is Dictionary and payload.get("safe", false): _complete()
 
