@@ -19,6 +19,7 @@ var sample_collected := false
 var intro_camera: Camera3D
 var cutscene_active := false
 var boarding_range := 5.0
+var world_art := {}
 var _intro_tween: Tween
 
 func _ready() -> void:
@@ -135,6 +136,10 @@ func _build_world() -> void:
 	intro_camera.position = Vector3(14, 9, 18)
 	intro_camera.look_at_from_position(intro_camera.position, Vector3(0, 1, -5), Vector3.UP)
 	add_child(intro_camera)
+
+	# Art is installed only after gameplay anchors exist. Replacing a GLB never
+	# changes controller/interaction nodes or their collision state.
+	world_art = WorldArt.install(self, eva)
 
 func _make_interactable(id: String, label: String, position_: Vector3, scan_required: bool) -> Interactable:
 	var area := Interactable.new()
@@ -259,10 +264,15 @@ func _set_mode(value: String) -> void:
 	if ship_active: eva.position = ship.position + Vector3(0, 1.1, 0)
 	else: eva.position = ship.position + Vector3(0, 1.0, 4.8)
 
+func _set_eva_cinematic_visible(value: bool) -> void:
+	if world_art.has("eva_visual"):
+		WorldArt.set_eva_cinematic_visible(world_art["eva_visual"] as Node3D, value)
+
 func _play_intro_cutscene() -> void:
 	cutscene_active = true
 	eva.enabled = false
 	ship.enabled = false
+	_set_eva_cinematic_visible(true)
 	if mobile_controls: mobile_controls.visible = false
 	intro_camera.current = true
 	eva.camera.current = false
@@ -277,6 +287,7 @@ func _play_reveal_cutscene() -> void:
 	cutscene_active = true
 	eva.enabled = false
 	ship.enabled = false
+	_set_eva_cinematic_visible(true)
 	if mobile_controls: mobile_controls.visible = false
 	intro_camera.current = true
 	eva.camera.current = false
@@ -290,5 +301,6 @@ func _finish_cutscene() -> void:
 	if _intro_tween and _intro_tween.is_running(): _intro_tween.kill()
 	cutscene_active = false
 	intro_camera.current = false
+	_set_eva_cinematic_visible(false)
 	_set_mode(mode)
 	if mobile_controls: mobile_controls.visible = DisplayServer.is_touchscreen_available()
