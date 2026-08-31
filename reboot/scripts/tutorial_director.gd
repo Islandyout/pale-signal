@@ -3,6 +3,8 @@ extends Node
 
 signal objective_changed(title: String, detail: String, progress: float)
 signal lesson_completed(id: String)
+signal lesson_reset(id: String)
+signal lesson_skipped(id: String)
 signal tutorial_completed
 signal request_intro_cutscene
 signal request_reveal_cutscene
@@ -13,7 +15,7 @@ const LESSONS := [
 	{"id":"air", "title":"VERIFY THE AIR", "detail":"Look into open sky and hold SCAN until the atmospheric spectrum resolves."},
 	{"id":"scan", "title":"SCAN A SPECIMEN", "detail":"Centre the field specimen and hold SCAN. Scanning identifies; it does not collect."},
 	{"id":"collect", "title":"PHYSICAL COLLECTION", "detail":"Walk to the identified sample and interact to physically collect it."},
-	{"id":"archaeology", "title":"RECONSTRUCT EVIDENCE", "detail":"Scan the old foundation, then use left/right to align the reconstruction and interact to lock it."},
+	{"id":"archaeology", "title":"RECONSTRUCT EVIDENCE", "detail":"Scan the foundation. Align left/right until the lock zone is reached, then press E. F3 resets this step; F4 skips it."},
 	{"id":"board", "title":"BOARD THE SHIP", "detail":"Return to the ship and interact within boarding range."},
 	{"id":"launch", "title":"MANUAL VTOL LAUNCH", "detail":"Raise throttle. Lift is independent of nose pitch; no cutscene moves the ship."},
 	{"id":"space", "title":"ATMOSPHERE TO SPACE", "detail":"Climb continuously through the atmosphere ceiling using the real flight model."},
@@ -23,9 +25,16 @@ const LESSONS := [
 
 var index := 0
 var completed := {}
+var skipped := {}
 var _move_distance := 0.0
 var _look_degrees := 0.0
 var _nav_seen := {}
+
+func _process(_delta: float) -> void:
+	if Input.is_action_just_pressed("tutorial_reset"):
+		reset_current()
+	if Input.is_action_just_pressed("tutorial_skip"):
+		skip_current()
 
 func start() -> void:
 	request_intro_cutscene.emit()
@@ -72,6 +81,23 @@ func event(name: String, payload = null) -> void:
 		"landing":
 			if name == "touchdown" and payload is Dictionary and payload.get("safe", false): _complete()
 
+func reset_current() -> void:
+	if index >= LESSONS.size(): return
+	var id: String = LESSONS[index].id
+	match id:
+		"move": _move_distance = 0.0
+		"look": _look_degrees = 0.0
+		"nav": _nav_seen.clear()
+	lesson_reset.emit(id)
+	_emit_current(0.0)
+
+func skip_current() -> void:
+	if index >= LESSONS.size(): return
+	var id: String = LESSONS[index].id
+	skipped[id] = true
+	lesson_skipped.emit(id)
+	_complete()
+
 func _complete() -> void:
 	var id: String = LESSONS[index].id
 	completed[id] = true
@@ -89,4 +115,4 @@ func _emit_current(progress := 0.0) -> void:
 	objective_changed.emit(lesson.title, lesson.detail, progress)
 
 func snapshot() -> Dictionary:
-	return {"index": index, "completed": completed.duplicate(true)}
+	return {"index": index, "completed": completed.duplicate(true), "skipped": skipped.duplicate(true)}
