@@ -82,13 +82,13 @@ func _release_left_actions() -> void:
 
 func _build_buttons() -> void:
 	_add_hold_button("scan", "SCAN", Vector2(-108, -178), "scan")
-	_add_tap_button("interact", "USE", Vector2(-108, -106), "interact")
+	_add_tap_button("interact", "USE", Vector2(-208, -106), "interact")
 	_add_hold_button("throttle_up", "THR +", Vector2(-108, -250), "throttle_up")
 	_add_hold_button("throttle_down", "THR -", Vector2(-108, -178), "throttle_down")
 	_add_hold_button("brake", "BRAKE", Vector2(-108, -106), "brake")
 	_add_tap_button("nav", "NAV", Vector2(-108, -322), "nav_toggle")
-	_add_tap_button("route", "NEXT", Vector2(-108, -394), "route_next")
-	_add_tap_button("fabricator", "FAB", Vector2(-108, -466), "fabricator")
+	_add_tap_button("route", "NEXT", Vector2(-208, -250), "route_next")
+	_add_tap_button("fabricator", "FAB", Vector2(-208, -178), "fabricator")
 	set_mode(mode)
 
 func _new_button(label: String, offset: Vector2) -> Button:
