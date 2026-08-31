@@ -12,10 +12,10 @@ on:
       - '.github/workflows/reboot-godot-ci.yml'
 
 jobs:
-  contracts:
+  contracts-and-web:
     runs-on: ubuntu-latest
     container:
-      image: barichello/godot-ci:4.3
+      image: barichello/godot-ci:4.7.2
     steps:
       - uses: actions/checkout@v4
       - name: Import project
@@ -31,3 +31,16 @@ jobs:
           ! grep -R 'global_position *=.*nav_target' reboot/scripts/tutorial_director.gd
           grep -q 'event("launched")' reboot/scripts/game_root.gd
           grep -q 'event("touchdown"' reboot/scripts/game_root.gd
+      - name: Export Web build
+        run: |
+          mkdir -p reboot/build/web
+          godot --headless --path reboot --export-release "Web" build/web/index.html
+          test -f reboot/build/web/index.html
+          test -f reboot/build/web/index.wasm
+          test -f reboot/build/web/index.pck
+      - name: Upload playable Web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: pale-signal-reboot-web
+          path: reboot/build/web
+          if-no-files-found: error
