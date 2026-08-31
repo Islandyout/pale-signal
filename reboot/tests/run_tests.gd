@@ -5,6 +5,8 @@ var failures := 0
 func _init() -> void:
 	_test_scanning_does_not_collect()
 	_test_archaeology_requires_scan_and_alignment()
+	_test_archaeology_preserves_pre_scan()
+	_test_archaeology_has_recovery_contract()
 	_test_vtol_is_pitch_independent_contract()
 	_test_camera_steering_contract()
 	_test_campaign_fragment_unlock_chain()
@@ -38,7 +40,25 @@ func _test_archaeology_requires_scan_and_alignment() -> void:
 	a.begin()
 	_assert(not a.evidence_scanned, "archaeology must begin without fabricated evidence")
 	_assert(not a.completed, "archaeology cannot auto-complete")
+	_assert(a.lock_tolerance >= 0.05, "archaeology lock zone must be readable, not pixel-precision")
 	a.free()
+
+func _test_archaeology_preserves_pre_scan() -> void:
+	var a := ArchaeologySystem.new()
+	a.mark_scanned()
+	a.begin()
+	_assert(a.evidence_scanned, "starting reconstruction must preserve a scan completed before interaction")
+	a.cancel()
+	_assert(not a.evidence_scanned, "reset/cancel must clear archaeology evidence state")
+	a.free()
+
+func _test_archaeology_has_recovery_contract() -> void:
+	var archaeology_source := FileAccess.get_file_as_string("res://scripts/archaeology_system.gd")
+	var tutorial_source := FileAccess.get_file_as_string("res://scripts/tutorial_director.gd")
+	var input_source := FileAccess.get_file_as_string("res://scripts/input_bootstrap.gd")
+	_assert(archaeology_source.contains("tutorial_reset") and archaeology_source.contains("tutorial_skip"), "archaeology must release active state on tutorial reset/skip")
+	_assert(tutorial_source.contains("reset_current") and tutorial_source.contains("skip_current"), "tutorial must expose reset and skip recovery")
+	_assert(input_source.contains("tutorial_reset") and input_source.contains("tutorial_skip"), "reset and skip actions must be bound")
 
 func _test_vtol_is_pitch_independent_contract() -> void:
 	var source := FileAccess.get_file_as_string("res://scripts/ship_controller.gd")
