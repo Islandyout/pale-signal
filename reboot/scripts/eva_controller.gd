@@ -37,13 +37,17 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not enabled: return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		rotate_y(-event.relative.x * mouse_sensitivity)
-		_head.rotation.x = clamp(_head.rotation.x - event.relative.y * mouse_sensitivity, -1.35, 1.35)
-		var amount := event.relative.length() * mouse_sensitivity * 57.2958
-		total_look_degrees += amount
-		looked.emit(amount)
+		apply_look(event.relative)
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+func apply_look(delta_pixels: Vector2) -> void:
+	if not enabled: return
+	rotate_y(-delta_pixels.x * mouse_sensitivity)
+	_head.rotation.x = clamp(_head.rotation.x - delta_pixels.y * mouse_sensitivity, -1.35, 1.35)
+	var amount := delta_pixels.length() * mouse_sensitivity * 57.2958
+	total_look_degrees += amount
+	looked.emit(amount)
 
 func _physics_process(delta: float) -> void:
 	if not enabled:
