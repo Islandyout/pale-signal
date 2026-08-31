@@ -74,8 +74,9 @@ func _build_hud() -> void:
 	reset_button.flat = true
 	recovery_row.add_child(reset_button)
 	skip_button = Button.new()
-	skip_button.text = "SKIP LESSON"
+	skip_button.text = "SKIP CUTSCENE"
 	skip_button.flat = true
+	skip_button.visible = false
 	recovery_row.add_child(skip_button)
 
 	campaign_label = Label.new()
@@ -200,7 +201,7 @@ func _bind_systems() -> void:
 	archaeology.reconstruction_state.connect(_on_reconstruction_state)
 	archaeology.reconstruction_complete.connect(_on_reconstruction_complete)
 	reset_button.pressed.connect(_reset_step)
-	skip_button.pressed.connect(_skip_step)
+	skip_button.pressed.connect(_skip_cutscene)
 	_bound = true
 	_update_context()
 	_update_campaign_summary()
@@ -218,7 +219,7 @@ func _on_objective_changed(title: String, detail: String, progress: float) -> vo
 	objective_progress.value = clampf(progress, 0.0, 1.0)
 
 func _on_tutorial_completed() -> void:
-	recovery_row.visible = false
+	reset_button.visible = false
 	reconstruction_panel.visible = false
 
 func _on_scan_progress(value: float, label: String) -> void:
@@ -253,16 +254,15 @@ func _reset_step() -> void:
 	if tutorial != null:
 		tutorial.reset_current()
 
-func _skip_step() -> void:
-	if archaeology != null and archaeology.active:
-		archaeology.cancel()
-	if tutorial != null:
-		tutorial.skip_current()
+func _skip_cutscene() -> void:
+	if root != null and bool(root.get("cutscene_active")) and root.has_method("_finish_cutscene"):
+		root.call("_finish_cutscene")
 
 func _update_context() -> void:
 	var old_hint := root.get("hint_label") as Label
 	if old_hint == null:
 		return
+	skip_button.visible = bool(root.get("cutscene_active"))
 	context_label.text = old_hint.text
 	context_panel.visible = not context_label.text.is_empty() and not reconstruction_panel.visible
 
