@@ -27,7 +27,7 @@ func set_mode(value: String) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible: return
-	var size := get_viewport_rect().size
+	var size: Vector2 = get_viewport_rect().size
 	if event is InputEventScreenTouch:
 		if event.pressed:
 			if event.position.x < size.x * 0.43 and event.position.y > size.y * 0.38 and left_touch < 0:
@@ -50,12 +50,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			_update_left_actions()
 			queue_redraw()
 		elif event.index == look_touch:
-			var delta := event.position - look_last
+			var delta_pixels: Vector2 = event.position - look_last
 			look_last = event.position
-			look_delta.emit(delta)
+			look_delta.emit(delta_pixels)
 
 func _update_left_actions() -> void:
-	var v := (left_position - left_origin) / stick_radius
+	var v: Vector2 = (left_position - left_origin) / stick_radius
 	if v.length() > 1.0: v = v.normalized()
 	if mode == "eva":
 		_set_axis_actions("move_left", "move_right", v.x)
@@ -122,7 +122,7 @@ func _button_visible(id: String) -> bool:
 func _draw() -> void:
 	if left_touch < 0: return
 	draw_circle(left_origin, stick_radius, Color(0.2,0.7,0.9,0.12))
-	var knob := left_position
-	var delta := knob - left_origin
-	if delta.length() > stick_radius: knob = left_origin + delta.normalized() * stick_radius
+	var knob: Vector2 = left_position
+	var stick_delta: Vector2 = knob - left_origin
+	if stick_delta.length() > stick_radius: knob = left_origin + stick_delta.normalized() * stick_radius
 	draw_circle(knob, 28.0, Color(0.55,0.9,1.0,0.34))
