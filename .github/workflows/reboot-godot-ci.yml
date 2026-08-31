@@ -11,6 +11,9 @@ on:
       - 'reboot/**'
       - '.github/workflows/reboot-godot-ci.yml'
 
+permissions:
+  contents: write
+
 jobs:
   contracts-and-web:
     runs-on: ubuntu-latest
@@ -77,9 +80,39 @@ jobs:
           test -f reboot/build/web/index.html
           test -f reboot/build/web/index.wasm
           test -f reboot/build/web/index.pck
+          printf '%s\n' "$GITHUB_SHA" > reboot/build/web/BUILD_SOURCE.txt
       - name: Upload playable Web build
         uses: actions/upload-artifact@v4
         with:
           name: pale-signal-reboot-web
           path: reboot/build/web
           if-no-files-found: error
+
+  publish-preview:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/reboot-godot'
+    needs: contracts-and-web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: pale-signal-reboot-web
+          path: exported-web
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Publish isolated reboot preview
+        run: |
+          set -eu
+          rm -rf reboot-preview
+          mkdir -p reboot-preview
+          cp -a exported-web/. reboot-preview/
+          touch reboot-preview/.nojekyll
+          git config user.name 'Pale Signal Build Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A reboot-preview
+          if git diff --cached --quiet; then
+            echo 'Preview already current.'
+            exit 0
+          fi
+          git commit -m "Publish Godot reboot preview ${GITHUB_SHA::8}"
+          git push origin HEAD:main
