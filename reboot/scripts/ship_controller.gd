@@ -46,11 +46,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not enabled: return
 	# Camera look is deliberately independent of ship steering.
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		_look_yaw -= event.relative.x * 0.002
-		_look_pitch = clamp(_look_pitch - event.relative.y * 0.002, -0.8, 0.55)
-		_ship_camera_pivot.rotation = Vector3(_look_pitch, _look_yaw, 0.0)
+		apply_camera_look(event.relative)
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+func apply_camera_look(delta_pixels: Vector2) -> void:
+	if not enabled: return
+	_look_yaw -= delta_pixels.x * 0.002
+	_look_pitch = clamp(_look_pitch - delta_pixels.y * 0.002, -0.8, 0.55)
+	_ship_camera_pivot.rotation = Vector3(_look_pitch, _look_yaw, 0.0)
 
 func _physics_process(delta: float) -> void:
 	if not enabled: return
