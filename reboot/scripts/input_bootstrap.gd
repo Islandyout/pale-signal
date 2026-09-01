@@ -19,8 +19,9 @@ static func ensure_actions() -> void:
 	_bind_key("roll_right", KEY_C)
 	_bind_key("brake", KEY_X)
 	_bind_key("nav_toggle", KEY_N)
-	_bind_key("route_next", KEY_TAB)
-	_bind_key("fabricator", KEY_U)
+	# Later-world route cycling and the upgrade fabricator remain dormant until
+	# the Tethys/Kestra vertical slice clears its quality gates. Do not expose
+	# those campaign-breadth actions in the production first hour.
 	_bind_key("tutorial", KEY_F2)
 	_bind_key("tutorial_reset", KEY_F3)
 	_bind_key("cutscene_skip", KEY_F4)
