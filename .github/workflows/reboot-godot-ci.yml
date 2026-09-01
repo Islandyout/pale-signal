@@ -76,6 +76,14 @@ jobs:
           ! grep -R 'global_position *=.*nav_target' reboot/scripts/tutorial_director.gd
           grep -q 'event("launched")' reboot/scripts/game_root.gd
           grep -q 'event("touchdown"' reboot/scripts/game_root.gd
+      - name: Verify wildlife investigation contract
+        run: |
+          set -eu
+          grep -q 'var grazer := Interactable.new()' reboot/scripts/wildlife_system.gd
+          grep -q 'interaction_id = "wildlife|flat_grazer|' reboot/scripts/wildlife_system.gd
+          grep -q 'collision.name = "ScannerBody"' reboot/scripts/wildlife_system.gd
+          grep -q 'if target == sample:' reboot/scripts/game_root.gd
+          grep -q 'target.interaction_id.begins_with("wildlife|flat_grazer|")' reboot/scripts/game_root.gd
       - name: Prepare Godot export templates
         run: |
           set -eu
