@@ -66,6 +66,8 @@ jobs:
         run: godot --headless --path reboot --script res://tests/asset_import_test.gd
       - name: Run mechanic contracts
         run: godot --headless --path reboot --script res://tests/run_tests.gd
+      - name: Verify save corruption recovery
+        run: godot --headless --path reboot --script res://tests/save_recovery_test.gd
       - name: Verify GLB adapter paths
         run: |
           grep -q 'ship_player.gltf' reboot/scripts/asset_loader.gd
