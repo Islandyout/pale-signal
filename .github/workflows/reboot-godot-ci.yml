@@ -68,6 +68,8 @@ jobs:
         run: godot --headless --path reboot --script res://tests/run_tests.gd
       - name: Verify save corruption recovery
         run: godot --headless --path reboot --script res://tests/save_recovery_test.gd
+      - name: Verify Flat Grazer herd behavior
+        run: godot --headless --path reboot --script res://tests/wildlife_test.gd
       - name: Verify GLB adapter paths
         run: |
           grep -q 'ship_player.gltf' reboot/scripts/asset_loader.gd
