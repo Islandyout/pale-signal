@@ -230,7 +230,8 @@ func _connect_systems() -> void:
 	scanner.atmosphere_verified.connect(func(): tutorial.event("atmosphere_verified"))
 	scanner.subject_scanned.connect(_on_subject_scanned)
 	scanner.scan_progress.connect(func(value, label): scan_bar.value = value; scan_label.text = label)
-	archaeology.reconstruction_progress.connect(func(value): scan_bar.value = value; scan_label.text = "RECONSTRUCTION ALIGNMENT" if archaeology.active else scan_label.text)
+	archaeology.reconstruction_progress.connect(func(value): scan_bar.value = value)
+	archaeology.reconstruction_state.connect(_on_reconstruction_state)
 	archaeology.reconstruction_complete.connect(_on_reconstruction_complete)
 	ship.launched.connect(func(): tutorial.event("launched"))
 	ship.crossed_atmosphere.connect(func(): tutorial.event("crossed_atmosphere"))
@@ -245,6 +246,13 @@ func _connect_systems() -> void:
 	tutorial.request_intro_cutscene.connect(_play_intro_cutscene)
 	tutorial.request_reveal_cutscene.connect(_play_reveal_cutscene)
 	mobile_controls.look_delta.connect(_on_mobile_look)
+
+func _on_reconstruction_state(stage: String, alignment: float, target: float, lock_ready: bool) -> void:
+	if not archaeology.active and stage != "RECONSTRUCTION LOCKED":
+		return
+	var delta := target - alignment
+	var direction := "HOLD · E LOCK" if lock_ready else ("A · SHIFT LEFT" if delta < 0.0 else "D · SHIFT RIGHT")
+	scan_label.text = "%s · %s · OFFSET %.2f" % [stage, direction, absf(delta)]
 
 func _restore_first_hour_progress() -> void:
 	# Tutorial completion is the authoritative persisted source for the one-time
