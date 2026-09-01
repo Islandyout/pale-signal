@@ -9,6 +9,7 @@ func _init() -> void:
 	_test_archaeology_has_recovery_contract()
 	_test_tutorial_mechanics_cannot_be_skipped()
 	_test_tutorial_nav_requires_full_cue_set()
+	_test_tutorial_save_restore_contract()
 	_test_vtol_is_pitch_independent_contract()
 	_test_camera_steering_contract()
 	_test_campaign_fragment_unlock_chain()
@@ -89,6 +90,17 @@ func _test_tutorial_nav_requires_full_cue_set() -> void:
 	t.event("nav_state", "APPROACH")
 	_assert(t.index == 10, "navigation lesson must complete after TURN/BURN/COAST/BRAKE/APPROACH are all observed")
 	_assert(t.completed.has("nav"), "full navigation cue coverage should complete the navigation lesson")
+	t.free()
+
+func _test_tutorial_save_restore_contract() -> void:
+	var t := TutorialDirector.new()
+	t.restore({"index": 5, "completed": {"move": true, "look": true, "air": true, "scan": true, "collect": true}, "skipped": {}})
+	_assert(t.index == 5, "tutorial restore must resume at the saved lesson boundary")
+	_assert(t.completed.has("collect"), "tutorial restore must preserve completed real-mechanic lessons")
+	var snap := t.snapshot()
+	_assert(int(snap.get("index", -1)) == 5, "tutorial snapshot must retain restored lesson index")
+	t.restore({"index": 999, "completed": {}, "skipped": {}})
+	_assert(t.index == TutorialDirector.LESSONS.size(), "tutorial restore must clamp invalid future indices")
 	t.free()
 
 func _test_vtol_is_pitch_independent_contract() -> void:
