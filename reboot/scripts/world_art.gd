@@ -56,12 +56,12 @@ static func _decorate_talari(anchor: Node3D) -> void:
 	ceramic.metallic = 0.18
 	ceramic.roughness = 0.44
 
-	var signal := StandardMaterial3D.new()
-	signal.albedo_color = Color("#8de1d4")
-	signal.emission_enabled = true
-	signal.emission = Color("#54aa9f")
-	signal.emission_energy_multiplier = 1.55
-	signal.roughness = 0.3
+	var signal_mat := StandardMaterial3D.new()
+	signal_mat.albedo_color = Color("#8de1d4")
+	signal_mat.emission_enabled = true
+	signal_mat.emission = Color("#54aa9f")
+	signal_mat.emission_energy_multiplier = 1.55
+	signal_mat.roughness = 0.3
 
 	# Talari cranial fan: an asymmetrical three-fin sensory crown gives the
 	# instructor a readable non-human profile even at training-basin distance.
@@ -95,7 +95,7 @@ static func _decorate_talari(anchor: Node3D) -> void:
 		bar.name = "SignalBarL" if side < 0.0 else "SignalBarR"
 		var bar_mesh := BoxMesh.new()
 		bar_mesh.size = Vector3(0.055, 0.34, 0.035)
-		bar_mesh.material = signal
+		bar_mesh.material = signal_mat
 		bar.mesh = bar_mesh
 		bar.position = Vector3(0.17 * side, 1.26, -0.31)
 		bar.rotation_degrees.z = 11.0 * side
@@ -118,7 +118,7 @@ static func _decorate_talari(anchor: Node3D) -> void:
 	antenna_mesh.top_radius = 0.018
 	antenna_mesh.bottom_radius = 0.024
 	antenna_mesh.height = 0.58
-	antenna_mesh.material = signal
+	antenna_mesh.material = signal_mat
 	antenna.mesh = antenna_mesh
 	antenna.position = Vector3(0.23, 1.66, 0.35)
 	antenna.rotation_degrees.z = -7.0
