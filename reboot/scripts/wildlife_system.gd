@@ -31,10 +31,28 @@ func _build_tethys_flat_grazers() -> void:
 		Vector3(8.0, 0.55, -38.0),
 	]
 	for i in range(GRAZER_COUNT):
-		var fallback := _make_flat_grazer_fallback(i)
-		var grazer := AssetLoader.instantiate_or_fallback("wildlife", fallback)
+		# Wildlife uses the same scanner-facing Area3D contract as other field
+		# subjects, but remains non-collectible and does not own tutorial state.
+		var grazer := Interactable.new()
 		grazer.name = "FlatGrazer%02d" % (i + 1)
+		grazer.interaction_id = "wildlife|flat_grazer|%02d" % (i + 1)
+		grazer.display_name = "Flat Grazer"
+		grazer.requires_scan = false
 		grazer.position = homes[i]
+
+		var fallback := _make_flat_grazer_fallback(i)
+		var visual := AssetLoader.instantiate_or_fallback("wildlife", fallback)
+		visual.name = "Visual"
+		grazer.add_child(visual)
+
+		var collision := CollisionShape3D.new()
+		collision.name = "ScannerBody"
+		var shape := BoxShape3D.new()
+		shape.size = Vector3(2.5, 1.15, 1.55)
+		collision.shape = shape
+		collision.position.y = 0.35
+		grazer.add_child(collision)
+
 		add_child(grazer)
 		_grazers.append({
 			"node": grazer,
