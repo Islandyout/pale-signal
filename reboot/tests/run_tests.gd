@@ -10,6 +10,7 @@ func _init() -> void:
 	_test_tutorial_mechanics_cannot_be_skipped()
 	_test_tutorial_nav_requires_full_cue_set()
 	_test_tutorial_save_restore_contract()
+	_test_first_hour_world_state_restore_contract()
 	_test_vtol_is_pitch_independent_contract()
 	_test_camera_steering_contract()
 	_test_campaign_fragment_unlock_chain()
@@ -102,6 +103,14 @@ func _test_tutorial_save_restore_contract() -> void:
 	t.restore({"index": 999, "completed": {}, "skipped": {}})
 	_assert(t.index == TutorialDirector.LESSONS.size(), "tutorial restore must clamp invalid future indices")
 	t.free()
+
+func _test_first_hour_world_state_restore_contract() -> void:
+	var source := FileAccess.get_file_as_string("res://scripts/game_root.gd")
+	_assert(source.contains("tutorial.start()\n\t_restore_first_hour_progress()"), "first-hour physical state must restore after tutorial progress loads")
+	_assert(source.contains("tutorial.completed.has(\"scan\")"), "saved specimen identification must restore from completed scan progress")
+	_assert(source.contains("tutorial.completed.has(\"collect\")"), "saved specimen collection must restore from completed collection progress")
+	_assert(source.contains("sample.monitorable = not value"), "collected specimen must leave scanner collision queries")
+	_assert(source.contains("_set_sample_collected(true)"), "live collection and restored collection must use the same physical-state path")
 
 func _test_vtol_is_pitch_independent_contract() -> void:
 	var source := FileAccess.get_file_as_string("res://scripts/ship_controller.gd")
