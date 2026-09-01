@@ -1,64 +1,65 @@
 # Master Backlog
 
-## Milestone: Vertical Slice 2.0 — Tethys / Kestra
+## Milestone: Godot Production Reboot — Tethys / Kestra First Hour
 
-Status reflects the current browser/PWA/Android vertical-slice implementation. Checked items mean the implementation target exists in the build or production contract. Hardware/human validation remains separate and is not implied by a checked box.
+Status reflects the canonical Godot production work on branch `reboot-godot`. The legacy browser prototype is preserved for reference only and is not the production target. Checked items mean a production implementation or enforceable contract exists; physical-device and human validation remain separate and are never implied by CI success.
 
 ### P0 — Must be solved before content expansion
-- [x] Define final production engine recommendation with migration plan from browser prototype. See `GODOT_MIGRATION_PLAN.md`.
-- [x] Establish measurable 60 FPS desktop target and realistic mobile target/device tiers. Profiler/evidence capture and tier thresholds exist; physical measurements are still required.
-- [x] Rebuild ship handling around feel-first manual/stabilized/NAV states.
-- [x] Rebuild EVA controller with robust grounding, slopes, collision, animation hooks, and interaction reach.
-- [x] Create contextual HUD information architecture.
-- [x] Design physical resource gathering loop for one Tethys fuel resource.
-- [x] Build first-hour onboarding that teaches by interaction rather than text walls.
-- [x] Replace the reference-only Survey Academy with playable lessons completed through real gameplay mechanics.
-- [x] Establish audio pipeline and first-pass Tethys/ship soundscape.
-- [x] Establish animation pipeline and EVA locomotion set for the prototype; authored skeletal animation is assigned to production migration.
-- [x] Define Tethys/Kestra visual bible with authored silhouette/material/lighting targets. See `TETHYS_KESTRA_VISUAL_BIBLE.md`.
-- [x] Build one dense Kestra district rather than broadening to more settlements.
-- [x] Implement one complete archaeology reconstruction sequence.
-- [ ] Independent human QA pass for frustration that is not technically a bug. Automated instrumentation/recovery systems exist, but this gate requires an uninterrupted human playthrough.
+- [x] Establish Godot 4.7.2 stable production project and CI.
+- [x] Preserve continuous manual flight as the core traversal model.
+- [x] Keep camera look independent from ship steering.
+- [x] Keep VTOL lift independent from nose pitch.
+- [x] Isolate EVA, flight, interaction, scanner, archaeology, tutorial, save and supporting production systems.
+- [x] Make tutorial completion depend on real mechanics rather than scripted substitution.
+- [x] Establish purpose-built mobile controls mapped to the same mechanics.
+- [x] Establish explicit save/persistence handling and corruption-recovery regression coverage.
+- [x] Establish Web export pipeline.
+- [x] Establish native Android export pipeline.
+- [x] Establish asset provenance/license ledgers and pinned zero-cost source policy.
+- [ ] Complete an exceptional authored Tethys/Kestra first hour before expanding to another world.
+- [ ] Independent human QA pass for frustration, readability, onboarding comprehension and mechanic feel.
 
-### P1 — Vertical slice polish
-- [x] Weather event on Tethys with gameplay consequences.
-- [x] Wildlife behavior with readable reactions to player and ship.
-- [x] Ship landing feedback: suspension/settle, warnings, audio and contact response.
-- [x] Contextual scanner interactions beyond hold-to-complete.
-- [x] Settlement life: schedules, ambient conversations, visible jobs, vestibule/interior presentation.
-- [x] One Talari language-learning interaction with partial translation.
-- [x] One historical contradiction resolved through multiple evidence sources.
-- [x] Authored Kestra collision proxies implemented for solid hero geometry.
-- [x] Authored Kestra terrain-conformance pass implemented.
-- [ ] Fix first-hour director sample beat so pre-existing inventory cannot count as a newly collected Tethys sample.
-- [ ] Mobile-specific HUD and touch layout validated on low/mid/high physical device tiers. Self-audit and profiler are implemented; hardware evidence is still required.
+### P1 — First-hour quality
+- [ ] Flight feel: tune manual atmospheric/VTOL/vacuum handling from measurable play evidence without collapsing look and steering into one control.
+- [ ] Scanner skill: ensure scanning involves readable player judgment rather than passive hold-to-complete repetition.
+- [ ] Archaeology/reconstruction: deepen the hero sequence so evidence assembly and conflicting history are mechanically legible.
+- [ ] Talari behavior: strengthen authored routines, reactions and conflicting historical perspective inside the first-hour slice.
+- [ ] Wildlife ecology: make Flat Grazer and supporting fauna behavior readable, ecological and reactive without becoming a combat system.
+- [ ] Audio: build a strong authored Tethys/Kestra sound identity with state-aware ship, EVA, settlement, wildlife and Signal layers.
+- [ ] Art identity: substantially transform or replace temporary CC0 foundations for the hero ship, Talari, Flat Grazer, Pale Signal artifacts and hero archaeology.
+- [ ] Contextual UI/accessibility: keep information situational, readable and touch-safe without adding a new HUD subsystem.
+- [ ] Save/load first-hour continuity: preserve tutorial, investigation and progression state through reload/new-game boundaries.
 
-### Code-side finalization
-- [x] Live-script syntax regression CI.
-- [x] PWA script/cache parity regression CI.
-- [x] License ledger enforcement.
-- [x] Save-state persistence for live archaeology/civic/physical-verb state.
-- [x] Fresh-game live-state reset guard.
-- [x] First-hour runtime quality-gate validator.
-- [x] Mobile performance governor that cuts optional simulation/presentation before render clarity.
-- [x] Mobile touch-target/usability self-audit.
-- [x] Contextual recovery/control reference.
-- [x] Pacing dead-air recovery.
-- [x] Pages delivery pipeline passing.
-- [x] Android APK build pipeline passing.
+### Engineering / regression
+- [x] Godot parser/import validation in CI.
+- [x] Mechanic contracts for critical controller/tutorial invariants.
+- [x] Save corruption recovery regression test.
+- [x] Web export artifact generation.
+- [x] Android APK export artifact generation.
+- [ ] Add regression contracts whenever a critical mechanic gap is fixed, before expanding related scope.
+- [ ] Preserve desktop export/support as the slice hardens.
 
-### Remaining validation blockers
-1. Low/mid/high Android physical profiling captures.
-2. Desktop reference profiling capture.
-3. Current APK physical install/update/launch test.
-4. Full first-hour human playthrough including save/reload/new-game and frustration notes.
-5. Physical Kestra traversal/approach check confirming authored collision and terrain conformance behave visually as intended.
+### Asset / licensing
+- [x] Production asset ledger exists under `reboot/production/`.
+- [x] Imported zero-cost assets have source, revision, license and integrity records.
+- [x] CI fetch/import policy rejects untracked production-base binaries.
+- [ ] Replace/substantially transform temporary hero-identity source assets before final release presentation approval.
 
-### Frozen until slice validation passes
+### Validation still requiring real evidence
+- [ ] Android physical install/update/launch test.
+- [ ] Android sustained performance/thermal/touch capture on representative hardware.
+- [ ] Desktop reference performance capture.
+- [ ] Uninterrupted first-hour human playthrough including save/reload/new-game behavior.
+- [ ] Physical/readable validation of flight, landing, scanner, archaeology, touch controls and contextual UI.
+
+### Frozen until first-hour quality is proven
 - New planets
 - New civilizations
-- New major upgrade trees
-- New survival meters
-- New navigation subsystems
+- Major upgrade trees
+- New HUD subsystems
+- Broad survival systems
 - Large-scale city generation
-- Additional fragment sites beyond what the slice requires
+- Additional world breadth that does not directly improve the Tethys/Kestra first hour
+
+## Decision rule
+Work the strongest player-facing Tethys/Kestra gap next. Do not broaden scope merely to stay busy. If only genuine physical-device or human validation remains, stop cosmetic churn, record the exact evidence required, and wait for that evidence.
