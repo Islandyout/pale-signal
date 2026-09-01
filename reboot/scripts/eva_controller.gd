@@ -11,6 +11,7 @@ signal interact_requested
 @export var gravity := 18.0
 
 var enabled := true
+var movement_enabled := true
 var total_distance := 0.0
 var total_look_degrees := 0.0
 var _head: Node3D
@@ -18,6 +19,7 @@ var camera: Camera3D
 var _last_position := Vector3.ZERO
 
 func _ready() -> void:
+	add_to_group("eva_controller")
 	collision_layer = 1
 	collision_mask = 1
 	var shape := CollisionShape3D.new()
@@ -53,7 +55,9 @@ func _physics_process(delta: float) -> void:
 	if not enabled:
 		velocity = Vector3.ZERO
 		return
-	var input := Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
+	var input := Vector2.ZERO
+	if movement_enabled:
+		input = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 	var local := Vector3(input.x, 0.0, input.y)
 	var desired := global_transform.basis * local
 	desired.y = 0.0
@@ -70,6 +74,12 @@ func _physics_process(delta: float) -> void:
 		moved.emit(step_distance)
 	_last_position = global_position
 	if Input.is_action_just_pressed("interact"): interact_requested.emit()
+
+func set_movement_enabled(value: bool) -> void:
+	movement_enabled = value
+	if not value:
+		velocity.x = 0.0
+		velocity.z = 0.0
 
 func set_active(value: bool) -> void:
 	enabled = value
