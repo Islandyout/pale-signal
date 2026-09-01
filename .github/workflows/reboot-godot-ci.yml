@@ -112,6 +112,7 @@ jobs:
           cp -R "$src" "$HOME/.local/share/godot/export_templates/4.7.2.stable"
           test -f "$HOME/.local/share/godot/export_templates/4.7.2.stable/web_nothreads_release.zip"
           test -f "$HOME/.local/share/godot/export_templates/4.7.2.stable/android_debug.apk"
+          test -f "$HOME/.local/share/godot/export_templates/4.7.2.stable/windows_release_x86_64.exe"
       - name: Export Web build
         run: |
           set -eu
@@ -130,6 +131,13 @@ jobs:
           godot --headless --path reboot --export-debug "Android Debug" build/android/PaleSignal-debug.apk --verbose
           test -s reboot/build/android/PaleSignal-debug.apk
           printf '%s\n' "$GITHUB_SHA" > reboot/build/android/BUILD_SOURCE.txt
+      - name: Export Windows desktop build
+        run: |
+          set -eu
+          mkdir -p reboot/build/windows
+          godot --headless --path reboot --export-release "Windows Desktop" build/windows/PaleSignal.exe --verbose
+          test -s reboot/build/windows/PaleSignal.exe
+          printf '%s\n' "$GITHUB_SHA" > reboot/build/windows/BUILD_SOURCE.txt
       - name: Upload playable Web build
         uses: actions/upload-artifact@v4
         with:
@@ -143,6 +151,14 @@ jobs:
           path: |
             reboot/build/android/PaleSignal-debug.apk
             reboot/build/android/BUILD_SOURCE.txt
+          if-no-files-found: error
+      - name: Upload Windows desktop build
+        uses: actions/upload-artifact@v4
+        with:
+          name: pale-signal-reboot-windows
+          path: |
+            reboot/build/windows/PaleSignal.exe
+            reboot/build/windows/BUILD_SOURCE.txt
           if-no-files-found: error
 
   publish-preview:
