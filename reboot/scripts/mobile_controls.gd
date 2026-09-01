@@ -101,8 +101,10 @@ func _build_buttons() -> void:
 	_add_hold_button("throttle_down", "THR -", Vector2(-108, -178), "throttle_down")
 	_add_hold_button("brake", "BRAKE", Vector2(-108, -106), "brake")
 	_add_tap_button("nav", "NAV", Vector2(-108, -322), "nav_toggle")
-	_add_tap_button("route", "NEXT", Vector2(-208, -250), "route_next")
-	_add_tap_button("fabricator", "FAB", Vector2(-208, -178), "fabricator")
+	# Later-world route cycling and fabricator controls remain deliberately
+	# absent from the production touch layer while the Tethys/Kestra slice is
+	# under quality-gate validation.
+	_add_tap_button("interact", "USE", Vector2(-208, -178), "interact")
 	# Mobile flight keeps the same explicit roll mechanic as desktop instead of hiding it behind camera look.
 	_add_hold_button("roll_left", "ROLL L", Vector2(-308, -250), "roll_left")
 	_add_hold_button("roll_right", "ROLL R", Vector2(-308, -178), "roll_right")
@@ -150,7 +152,7 @@ func _tap_action(action: StringName) -> void:
 
 func _button_visible(id: String) -> bool:
 	if mode == "eva": return id in ["scan","interact"]
-	return id in ["throttle_up","throttle_down","brake","nav","route","fabricator","interact","roll_left","roll_right"]
+	return id in ["throttle_up","throttle_down","brake","nav","interact","roll_left","roll_right"]
 
 func _draw() -> void:
 	if left_touch < 0: return
