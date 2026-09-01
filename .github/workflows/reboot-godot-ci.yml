@@ -84,6 +84,13 @@ jobs:
           ! grep -R 'global_position *=.*nav_target' reboot/scripts/tutorial_director.gd
           grep -q 'event("launched")' reboot/scripts/game_root.gd
           grep -q 'event("touchdown"' reboot/scripts/game_root.gd
+      - name: Verify mobile cinematic skip parity
+        run: |
+          set -eu
+          grep -q '_build_cutscene_skip_button()' reboot/scripts/mobile_controls.gd
+          grep -q '_tap_action("cutscene_skip")' reboot/scripts/mobile_controls.gd
+          grep -q 'DisplayServer.is_touchscreen_available() and not visible' reboot/scripts/mobile_controls.gd
+          grep -q 'mobile_controls.visible = false' reboot/scripts/game_root.gd
       - name: Verify wildlife investigation contract
         run: |
           set -eu
