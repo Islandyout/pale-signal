@@ -274,6 +274,8 @@ func _on_subject_scanned(target: Interactable) -> void:
 		tutorial.event("subject_scanned", target)
 	elif target == ruin:
 		archaeology.mark_scanned()
+	elif target.interaction_id.begins_with("wildlife|flat_grazer|"):
+		hint_label.text = "FIELD NOTE · FLAT GRAZER · PRESSURE-SENSING FAN · DISTURBANCE RESPONSE OBSERVED"
 
 func _handle_interaction() -> void:
 	if archaeology.active:
