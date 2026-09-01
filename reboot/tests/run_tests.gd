@@ -4,6 +4,7 @@ var failures := 0
 
 func _init() -> void:
 	_test_scanning_does_not_collect()
+	_test_scanner_requires_readable_range_lock()
 	_test_archaeology_requires_scan_and_alignment()
 	_test_archaeology_preserves_pre_scan()
 	_test_archaeology_has_recovery_contract()
@@ -39,6 +40,18 @@ func _test_scanning_does_not_collect() -> void:
 	_assert(item.can_use(), "scanned resource should become collectible")
 	_assert(not item.completed, "scanning must not silently collect")
 	item.free()
+
+func _test_scanner_requires_readable_range_lock() -> void:
+	var scanner := ScannerSystem.new()
+	_assert(scanner.subject_lock_state(scanner.subject_min_lock_range - 0.1) == "TOO_CLOSE", "scanner must reject subject scans that are too close")
+	_assert(scanner.subject_lock_state(scanner.subject_max_lock_range + 0.1) == "TOO_FAR", "scanner must reject subject scans that are too far")
+	var midpoint := (scanner.subject_min_lock_range + scanner.subject_max_lock_range) * 0.5
+	_assert(scanner.subject_lock_state(midpoint) == "LOCKED", "scanner must expose a readable valid subject range band")
+	var source := FileAccess.get_file_as_string("res://scripts/scanner_system.gd")
+	_assert(source.contains("MOVE CLOSER"), "scanner must give readable correction when a subject is outside lock range")
+	_assert(source.contains("BACK OFF"), "scanner must give readable correction when a subject is inside the minimum lock range")
+	_assert(source.contains("lock_decay_rate"), "scanner must decay partial analysis instead of completing while range lock is invalid")
+	scanner.free()
 
 func _test_archaeology_requires_scan_and_alignment() -> void:
 	var a := ArchaeologySystem.new()
