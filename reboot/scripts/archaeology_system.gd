@@ -21,6 +21,7 @@ func begin() -> void:
 	completed = false
 	alignment = 0.15
 	target_alignment = 0.52 + randf() * 0.31
+	_set_eva_movement(false)
 	reconstruction_progress.emit(0.0)
 	_emit_state()
 
@@ -46,6 +47,7 @@ func tick(delta: float) -> void:
 	if lock_ready and Input.is_action_just_pressed("interact"):
 		completed = true
 		active = false
+		_set_eva_movement(true)
 		reconstruction_progress.emit(1.0)
 		reconstruction_state.emit("LOCKED", alignment, target_alignment, true)
 		reconstruction_complete.emit()
@@ -54,8 +56,14 @@ func cancel() -> void:
 	active = false
 	evidence_scanned = false
 	completed = false
+	_set_eva_movement(true)
 	reconstruction_progress.emit(0.0)
 	reconstruction_state.emit("RESET", alignment, target_alignment, false)
+
+func _set_eva_movement(value: bool) -> void:
+	# Group messaging preserves system isolation: reconstruction owns the lock
+	# request without reaching into GameRoot or mutating EVA transform/state.
+	get_tree().call_group("eva_controller", "set_movement_enabled", value)
 
 func _emit_state(lock_ready := false) -> void:
 	var stage := "SCAN REQUIRED"
