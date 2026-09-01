@@ -18,12 +18,13 @@ func setup(state: CampaignState) -> void:
 	_apply_progress_visibility()
 
 func _build_worlds() -> void:
-	for world in CampaignState.WORLD_ORDER:
+	# Production intentionally constructs only the Tethys/Kestra vertical slice.
+	# Later-world authoring data remains in CampaignState without becoming playable breadth.
+	for world in CampaignState.PRODUCTION_WORLDS:
 		var data: Dictionary = CampaignState.WORLD_DATA[world]
 		var anchor: Vector3 = data["anchor"]
 		var surface := _make_surface(world, anchor, data["color"])
 		add_child(surface)
-		if world == "Nemesis": nemesis_surface = surface
 		var label := Label3D.new()
 		label.text = world.to_upper()
 		label.font_size = 42
@@ -35,7 +36,6 @@ func _build_worlds() -> void:
 		_build_landmarks(world, anchor, data["color"])
 		_build_resources(world, anchor, data["resources"])
 	_build_fragments()
-	_build_nemesis_beacon()
 
 func _make_surface(world: String, anchor: Vector3, color: Color) -> Node3D:
 	var root := Node3D.new()
@@ -49,8 +49,6 @@ func _make_surface(world: String, anchor: Vector3, color: Color) -> Node3D:
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
 	mat.roughness = 0.94
-	if world == "Vell": mat.metallic = 0.08
-	if world == "Nemesis": mat.metallic = 0.45
 	mesh.material = mat
 	mesh_i.mesh = mesh
 	mesh_i.position.y = -0.5
@@ -98,6 +96,7 @@ func _build_fragments() -> void:
 	for fragment_id in CampaignState.FRAGMENTS:
 		var data: Dictionary = CampaignState.FRAGMENTS[fragment_id]
 		var world := str(data["world"])
+		if not CampaignState.PRODUCTION_WORLDS.has(world): continue
 		var anchor: Vector3 = CampaignState.WORLD_DATA[world]["anchor"]
 		var offset: Vector3 = data["offset"]
 		var site_id := "fragment|" + str(fragment_id)
@@ -117,26 +116,6 @@ func _build_fragments() -> void:
 			mesh_i.mesh = mesh
 		sites[site_id] = site
 		add_child(site)
-
-func _build_nemesis_beacon() -> void:
-	var anchor: Vector3 = CampaignState.WORLD_DATA["Nemesis"]["anchor"]
-	var site := _make_site("ending|nemesis_beacon", "THE PALE SIGNAL", anchor + Vector3(0, 1.2, -115), Color("#e6edf2"), 1.25)
-	var mesh_i := site.get_node("Visual") as MeshInstance3D
-	if mesh_i:
-		var mesh := CylinderMesh.new()
-		mesh.top_radius = 0.12
-		mesh.bottom_radius = 1.1
-		mesh.height = 9.5
-		var mat := StandardMaterial3D.new()
-		mat.albedo_color = Color("#b8c1c9")
-		mat.emission_enabled = true
-		mat.emission = Color("#d7f3ff") * 2.2
-		mat.metallic = 0.65
-		mat.roughness = 0.18
-		mesh.material = mat
-		mesh_i.mesh = mesh
-	sites["ending|nemesis_beacon"] = site
-	add_child(site)
 
 func _make_site(id: String, label: String, position_: Vector3, color: Color, radius: float) -> Interactable:
 	var area := Interactable.new()
@@ -165,8 +144,7 @@ func _make_site(id: String, label: String, position_: Vector3, color: Color, rad
 func surface_info(position_: Vector3) -> Dictionary:
 	var nearest := ""
 	var best := INF
-	for world in CampaignState.WORLD_ORDER:
-		if world == "Nemesis" and campaign != null and not campaign.world_unlocked("Nemesis"): continue
+	for world in CampaignState.PRODUCTION_WORLDS:
 		var anchor: Vector3 = CampaignState.WORLD_DATA[world]["anchor"]
 		var planar := Vector2(position_.x - anchor.x, position_.z - anchor.z).length()
 		if planar <= SURFACE_RADIUS and planar < best:
@@ -175,19 +153,15 @@ func surface_info(position_: Vector3) -> Dictionary:
 	if nearest.is_empty(): return {"valid":false, "world":"", "height":0.0, "atmosphere":0.0, "gravity":0.0}
 	var altitude := maxf(0.0, position_.y)
 	var atmosphere := clampf(1.0 - altitude / ATMOSPHERE_CEILING, 0.0, 1.0)
-	var gravity := 9.0
-	if nearest == "Vell": gravity = 4.4
-	elif nearest == "Hollow": gravity = 7.4
-	elif nearest == "Nemesis": gravity = 3.2
-	return {"valid":true, "world":nearest, "height":0.0, "atmosphere":atmosphere, "gravity":gravity}
+	return {"valid":true, "world":nearest, "height":0.0, "atmosphere":atmosphere, "gravity":9.0}
 
 func approach_target(world: String) -> Vector3:
-	if not CampaignState.WORLD_DATA.has(world): return Vector3.ZERO
+	if not CampaignState.PRODUCTION_WORLDS.has(world): return Vector3.ZERO
 	var anchor: Vector3 = CampaignState.WORLD_DATA[world]["anchor"]
 	return anchor + Vector3(0, 155, 185)
 
 func landing_target(world: String) -> Vector3:
-	if not CampaignState.WORLD_DATA.has(world): return Vector3.ZERO
+	if not CampaignState.PRODUCTION_WORLDS.has(world): return Vector3.ZERO
 	var anchor: Vector3 = CampaignState.WORLD_DATA[world]["anchor"]
 	return anchor + Vector3(0, 1, 60)
 
@@ -237,11 +211,9 @@ func update_context(position_: Vector3, environment: Environment) -> String:
 
 func _apply_progress_visibility() -> void:
 	if campaign == null: return
-	var nemesis_visible := campaign.world_unlocked("Nemesis")
-	if is_instance_valid(nemesis_surface): nemesis_surface.visible = nemesis_visible
-	if world_labels.has("Nemesis"): (world_labels["Nemesis"] as Label3D).visible = nemesis_visible
-	if sites.has("ending|nemesis_beacon"): (sites["ending|nemesis_beacon"] as Interactable).visible = nemesis_visible
 	for fragment_id in CampaignState.FRAGMENTS:
+		var data: Dictionary = CampaignState.FRAGMENTS[fragment_id]
+		if not CampaignState.PRODUCTION_WORLDS.has(str(data["world"])): continue
 		var site_id := "fragment|" + str(fragment_id)
 		if sites.has(site_id) and campaign.fragments.has(fragment_id):
 			(sites[site_id] as Interactable).visible = false
