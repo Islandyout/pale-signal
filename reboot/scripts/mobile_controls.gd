@@ -104,7 +104,6 @@ func _build_buttons() -> void:
 	# Later-world route cycling and fabricator controls remain deliberately
 	# absent from the production touch layer while the Tethys/Kestra slice is
 	# under quality-gate validation.
-	_add_tap_button("interact", "USE", Vector2(-208, -178), "interact")
 	# Mobile flight keeps the same explicit roll mechanic as desktop instead of hiding it behind camera look.
 	_add_hold_button("roll_left", "ROLL L", Vector2(-308, -250), "roll_left")
 	_add_hold_button("roll_right", "ROLL R", Vector2(-308, -178), "roll_right")
