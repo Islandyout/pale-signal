@@ -64,42 +64,108 @@ func _build_tethys_flat_grazers() -> void:
 		})
 
 func _make_flat_grazer_fallback(index: int) -> Node3D:
+	# The Flat Grazer is intentionally authored from inexpensive primitives rather
+	# than presented as a stock quadruped. Its silhouette language is a low armored
+	# browsing disk, six weight-bearing stilts, a forward grazing rake and a lateral
+	# sensory sail. This remains cheap enough for mobile while establishing species
+	# identity that can later wrap a verified GLB source without changing gameplay.
 	var root := Node3D.new()
-	var body := MeshInstance3D.new()
-	var body_mesh := BoxMesh.new()
-	body_mesh.size = Vector3(2.2, 0.34, 1.15)
-	var body_mat := StandardMaterial3D.new()
-	body_mat.albedo_color = Color("#6d8f78").lightened(float(index % 3) * 0.035)
-	body_mat.roughness = 0.92
-	body_mesh.material = body_mat
-	body.mesh = body_mesh
-	body.position.y = 0.38
-	root.add_child(body)
+	root.name = "FlatGrazerIdentity"
 
-	# A low asymmetric sensory fan gives the fallback a distinct silhouette
-	# instead of presenting a stock animal primitive as final identity.
-	var fan := MeshInstance3D.new()
-	var fan_mesh := PrismMesh.new()
-	fan_mesh.size = Vector3(0.95, 0.7, 0.16)
+	var hide_mat := StandardMaterial3D.new()
+	hide_mat.albedo_color = Color("#6d8f78").lightened(float(index % 3) * 0.035)
+	hide_mat.roughness = 0.92
+
+	var shell_mat := StandardMaterial3D.new()
+	shell_mat.albedo_color = Color("#7e9377").lightened(float(index % 2) * 0.025)
+	shell_mat.roughness = 0.86
+
 	var fan_mat := StandardMaterial3D.new()
 	fan_mat.albedo_color = Color("#a8b58b")
 	fan_mat.roughness = 0.74
+
+	var sense_mat := StandardMaterial3D.new()
+	sense_mat.albedo_color = Color("#9fd2bd")
+	sense_mat.emission_enabled = true
+	sense_mat.emission = Color("#386f62")
+	sense_mat.emission_energy_multiplier = 0.55
+	sense_mat.roughness = 0.62
+
+	var body := MeshInstance3D.new()
+	body.name = "BrowsingDisk"
+	var body_mesh := BoxMesh.new()
+	body_mesh.size = Vector3(2.45, 0.28, 1.28)
+	body_mesh.material = hide_mat
+	body.mesh = body_mesh
+	body.position.y = 0.40
+	root.add_child(body)
+
+	# Overlapping dorsal plates make the animal read as a naturally armored,
+	# ground-hugging browser instead of a rectangular placeholder.
+	for plate_index in range(3):
+		var plate := MeshInstance3D.new()
+		plate.name = "DorsalPlate%02d" % (plate_index + 1)
+		var plate_mesh := BoxMesh.new()
+		plate_mesh.size = Vector3(0.72, 0.12, 1.18 - float(plate_index) * 0.08)
+		plate_mesh.material = shell_mat
+		plate.mesh = plate_mesh
+		plate.position = Vector3(-0.72 + float(plate_index) * 0.72, 0.59 + absf(float(plate_index) - 1.0) * 0.02, 0.0)
+		plate.rotation_degrees.z = -4.0 + float(plate_index) * 4.0
+		root.add_child(plate)
+
+	# The offset sensory sail is the species' most readable non-terrestrial cue.
+	var fan := MeshInstance3D.new()
+	fan.name = "LateralSensorySail"
+	var fan_mesh := PrismMesh.new()
+	fan_mesh.size = Vector3(1.05, 0.76, 0.14)
 	fan_mesh.material = fan_mat
 	fan.mesh = fan_mesh
-	fan.position = Vector3(0.0, 0.67, -0.62)
-	fan.rotation_degrees.x = -18.0
+	fan.position = Vector3(-0.18, 0.72, -0.67)
+	fan.rotation_degrees = Vector3(-18.0, 0.0, -8.0)
 	root.add_child(fan)
 
-	for leg_index in range(4):
+	# Three forward rake teeth imply a scraping/grazing niche and give the head end
+	# a functional read without adding a conventional face.
+	for tooth_index in range(3):
+		var tooth := MeshInstance3D.new()
+		tooth.name = "GrazingRake%02d" % (tooth_index + 1)
+		var tooth_mesh := BoxMesh.new()
+		tooth_mesh.size = Vector3(0.14, 0.13, 0.52)
+		tooth_mesh.material = shell_mat
+		tooth.mesh = tooth_mesh
+		tooth.position = Vector3(-0.32 + float(tooth_index) * 0.32, 0.29, -0.78)
+		tooth.rotation_degrees.x = 13.0
+		root.add_child(tooth)
+
+	# Six short stilts keep the body unusually close to the terrain and distinguish
+	# locomotion from a stock four-legged animal while retaining simple animation.
+	for leg_index in range(6):
 		var leg := MeshInstance3D.new()
+		leg.name = "StiltLeg%02d" % (leg_index + 1)
 		var leg_mesh := BoxMesh.new()
-		leg_mesh.size = Vector3(0.22, 0.42, 0.22)
-		leg_mesh.material = body_mat
+		leg_mesh.size = Vector3(0.18, 0.42, 0.18)
+		leg_mesh.material = hide_mat
 		leg.mesh = leg_mesh
-		var x := -0.72 if leg_index < 2 else 0.72
-		var z := -0.34 if leg_index % 2 == 0 else 0.34
-		leg.position = Vector3(x, 0.08, z)
+		var column := leg_index / 2
+		var x := -0.78 + float(column) * 0.78
+		var z := -0.38 if leg_index % 2 == 0 else 0.38
+		leg.position = Vector3(x, 0.09, z)
+		leg.rotation_degrees.z = -6.0 + float(column) * 6.0
 		root.add_child(leg)
+
+	# Restrained paired sensory nodes provide a scanner-visible focal detail without
+	# turning the animal into a glowing effect source.
+	for side in [-1.0, 1.0]:
+		var sensor := MeshInstance3D.new()
+		sensor.name = "FieldSensorL" if side < 0.0 else "FieldSensorR"
+		var sensor_mesh := SphereMesh.new()
+		sensor_mesh.radius = 0.07
+		sensor_mesh.height = 0.14
+		sensor_mesh.material = sense_mat
+		sensor.mesh = sensor_mesh
+		sensor.position = Vector3(0.94, 0.49, 0.36 * side)
+		root.add_child(sensor)
+
 	return root
 
 func alert_level_for_neighbor(distance: float, neighbor_fear: float) -> float:
