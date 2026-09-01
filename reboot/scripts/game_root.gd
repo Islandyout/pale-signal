@@ -45,6 +45,7 @@ func _ready() -> void:
 	_set_nav_destination(campaign.selected_world)
 	_set_mode("eva")
 	tutorial.start()
+	_restore_first_hour_progress()
 	_update_campaign_ui()
 
 func _process(delta: float) -> void:
@@ -245,6 +246,24 @@ func _connect_systems() -> void:
 	tutorial.request_reveal_cutscene.connect(_play_reveal_cutscene)
 	mobile_controls.look_delta.connect(_on_mobile_look)
 
+func _restore_first_hour_progress() -> void:
+	# Tutorial completion is the authoritative persisted source for the one-time
+	# training specimen. Deriving physical state from it keeps older saves valid
+	# without adding another competing save owner.
+	var scan_done := tutorial.completed.has("scan")
+	var collect_done := tutorial.completed.has("collect")
+	sample.scanned = scan_done or collect_done
+	_set_sample_collected(collect_done)
+
+func _set_sample_collected(value: bool) -> void:
+	sample_collected = value
+	sample.completed = value
+	sample.visible = not value
+	sample.monitoring = not value
+	sample.monitorable = not value
+	sample.collision_layer = 0 if value else 1
+	sample.collision_mask = 0 if value else 1
+
 func _on_mobile_look(delta_pixels: Vector2) -> void:
 	if cutscene_active: return
 	if mode == "eva": eva.apply_look(delta_pixels)
@@ -267,9 +286,7 @@ func _handle_interaction() -> void:
 		return
 	if eva.global_position.distance_to(sample.global_position) <= 2.2:
 		if sample.scanned and not sample_collected:
-			sample_collected = true
-			sample.completed = true
-			sample.visible = false
+			_set_sample_collected(true)
 			tutorial.event("sample_collected")
 			hint_label.text = "PHYSICAL SAMPLE SECURED"
 		elif not sample.scanned:
