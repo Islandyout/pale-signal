@@ -13,6 +13,7 @@ func _init() -> void:
 	_test_first_hour_world_state_restore_contract()
 	_test_vtol_is_pitch_independent_contract()
 	_test_camera_steering_contract()
+	_test_mobile_flight_input_parity_contract()
 	_test_campaign_fragment_unlock_chain()
 	_test_nemesis_requires_all_fragments()
 	_test_world_surface_contract()
@@ -121,6 +122,13 @@ func _test_camera_steering_contract() -> void:
 	var source := FileAccess.get_file_as_string("res://scripts/ship_controller.gd")
 	_assert(source.contains("Camera look is deliberately independent of ship steering"), "camera/steering separation contract missing")
 	_assert(not source.contains("rotate_y(-event.relative.x"), "mouse-look must not rotate the ship")
+
+func _test_mobile_flight_input_parity_contract() -> void:
+	var source := FileAccess.get_file_as_string("res://scripts/mobile_controls.gd")
+	_assert(source.contains("\"roll_left\", \"ROLL L\""), "mobile flight must expose explicit roll-left input")
+	_assert(source.contains("\"roll_right\", \"ROLL R\""), "mobile flight must expose explicit roll-right input")
+	_assert(source.contains("\"roll_left\",\"roll_right\""), "mobile flight roll controls must be visible in ship mode")
+	_assert(source.contains("look_delta.emit(delta_pixels)"), "mobile camera look must remain separate from ship steering")
 
 func _test_campaign_fragment_unlock_chain() -> void:
 	var c := CampaignState.new()
