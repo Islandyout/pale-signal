@@ -1,6 +1,9 @@
 class_name CampaignState
 extends RefCounted
 
+# Authoring data for later worlds is retained, but production remains hard-locked
+# to the Tethys/Kestra vertical slice until that first hour passes its quality gates.
+const PRODUCTION_WORLDS := ["Tethys"]
 const WORLD_ORDER := ["Tethys", "Cinder", "Vell", "Ossuary", "Hollow", "Nemesis"]
 
 const WORLD_DATA := {
@@ -86,23 +89,19 @@ func collect_resource(resource_name: String, site_id: String, amount := 1) -> bo
 func collect_fragment(fragment_id: String) -> bool:
 	if fragments.has(fragment_id): return false
 	if not FRAGMENTS.has(fragment_id): return false
+	var data: Dictionary = FRAGMENTS[fragment_id]
+	if not PRODUCTION_WORLDS.has(str(data["world"])): return false
 	fragments[fragment_id] = true
 	collected_sites["fragment|" + fragment_id] = true
 	return true
 
 func world_unlocked(world: String) -> bool:
-	match world:
-		"Tethys": return true
-		"Cinder": return fragments.has("tethys_1") and fragments.has("tethys_2")
-		"Vell": return fragments.has("cinder_3")
-		"Ossuary": return fragments.has("vell_4")
-		"Hollow": return fragments.has("ossuary_5") and fragments.has("ossuary_6")
-		"Nemesis": return fragment_count() >= 7
-	return false
+	if not PRODUCTION_WORLDS.has(world): return false
+	return world == "Tethys"
 
 func available_worlds() -> Array[String]:
 	var worlds: Array[String] = []
-	for world in WORLD_ORDER:
+	for world in PRODUCTION_WORLDS:
 		if world_unlocked(world): worlds.append(world)
 	return worlds
 
@@ -118,11 +117,8 @@ func select_next_world() -> String:
 	return selected_world
 
 func select_objective_world() -> String:
-	for world in WORLD_ORDER:
+	for world in PRODUCTION_WORLDS:
 		if not world_unlocked(world): continue
-		if world == "Nemesis":
-			selected_world = world
-			return selected_world
 		var complete := true
 		for fragment_id in FRAGMENTS:
 			var data: Dictionary = FRAGMENTS[fragment_id]
@@ -132,7 +128,7 @@ func select_objective_world() -> String:
 		if not complete:
 			selected_world = world
 			return selected_world
-	selected_world = "Nemesis" if world_unlocked("Nemesis") else "Tethys"
+	selected_world = "Tethys"
 	return selected_world
 
 func next_upgrade() -> String:
@@ -176,10 +172,18 @@ func snapshot() -> Dictionary:
 
 func restore(data: Dictionary) -> void:
 	if data.has("inventory") and data["inventory"] is Dictionary: inventory = (data["inventory"] as Dictionary).duplicate(true)
-	if data.has("fragments") and data["fragments"] is Dictionary: fragments = (data["fragments"] as Dictionary).duplicate(true)
+	if data.has("fragments") and data["fragments"] is Dictionary:
+		var restored_fragments: Dictionary = (data["fragments"] as Dictionary).duplicate(true)
+		fragments.clear()
+		for fragment_id in restored_fragments:
+			if FRAGMENTS.has(fragment_id):
+				var fragment_data: Dictionary = FRAGMENTS[fragment_id]
+				if PRODUCTION_WORLDS.has(str(fragment_data["world"])):
+					fragments[fragment_id] = restored_fragments[fragment_id]
 	if data.has("collected_sites") and data["collected_sites"] is Dictionary: collected_sites = (data["collected_sites"] as Dictionary).duplicate(true)
 	if data.has("upgrades") and data["upgrades"] is Dictionary:
 		var restored: Dictionary = data["upgrades"]
 		for id in UPGRADE_ORDER: upgrades[id] = int(restored.get(id, 0))
 	selected_world = str(data.get("selected_world", selected_world))
+	if not PRODUCTION_WORLDS.has(selected_world): selected_world = "Tethys"
 	ending_complete = bool(data.get("ending_complete", false))
