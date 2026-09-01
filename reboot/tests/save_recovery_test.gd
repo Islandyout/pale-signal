@@ -9,6 +9,10 @@ func _init() -> void:
 	_cleanup()
 	var previous := {"tutorial": {"index": 4}, "campaign": {"fragments": {"tethys_1": true}}}
 	var current := {"tutorial": {"index": 6}, "campaign": {"fragments": {"tethys_1": true, "tethys_2": true}}}
+	var expected_previous = JSON.parse_string(JSON.stringify(previous))
+	if not expected_previous is Dictionary:
+		_fail("could not normalize recovery fixture through JSON")
+		return
 	if not SaveSystemScript.save_state(previous):
 		_fail("initial recovery fixture save failed")
 		return
@@ -24,8 +28,8 @@ func _init() -> void:
 	corrupt.close()
 
 	var recovered := SaveSystemScript.load_state()
-	if recovered != previous:
-		_fail("invalid primary save must recover the previous known-good backup")
+	if recovered != expected_previous:
+		_fail("invalid primary save must recover the previous serialized known-good backup")
 		return
 
 	_cleanup()
