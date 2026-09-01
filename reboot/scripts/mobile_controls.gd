@@ -89,6 +89,9 @@ func _build_buttons() -> void:
 	_add_tap_button("nav", "NAV", Vector2(-108, -322), "nav_toggle")
 	_add_tap_button("route", "NEXT", Vector2(-208, -250), "route_next")
 	_add_tap_button("fabricator", "FAB", Vector2(-208, -178), "fabricator")
+	# Mobile flight keeps the same explicit roll mechanic as desktop instead of hiding it behind camera look.
+	_add_hold_button("roll_left", "ROLL L", Vector2(-308, -250), "roll_left")
+	_add_hold_button("roll_right", "ROLL R", Vector2(-308, -178), "roll_right")
 	set_mode(mode)
 
 func _new_button(label: String, offset: Vector2) -> Button:
@@ -119,7 +122,7 @@ func _tap_action(action: StringName) -> void:
 
 func _button_visible(id: String) -> bool:
 	if mode == "eva": return id in ["scan","interact"]
-	return id in ["throttle_up","throttle_down","brake","nav","route","fabricator","interact"]
+	return id in ["throttle_up","throttle_down","brake","nav","route","fabricator","interact","roll_left","roll_right"]
 
 func _draw() -> void:
 	if left_touch < 0: return
