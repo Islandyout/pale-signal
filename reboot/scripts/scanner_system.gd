@@ -8,6 +8,9 @@ signal scan_progress(value: float, label: String)
 @export var atmosphere_time := 1.8
 @export var subject_time := 1.25
 @export var range := 8.0
+@export var subject_min_lock_range := 1.4
+@export var subject_max_lock_range := 5.75
+@export var lock_decay_rate := 0.8
 var atmosphere_done := false
 var _progress := 0.0
 var _last_target: Object
@@ -28,8 +31,15 @@ func tick(delta: float, camera: Camera3D, enabled: bool) -> void:
 		if _last_target != target:
 			_progress = 0.0
 			_last_target = target
-		_progress += delta / subject_time
-		scan_progress.emit(clampf(_progress, 0.0, 1.0), "SCANNING " + target.display_name.to_upper())
+		var target_distance := from.distance_to(hit.position)
+		var lock_state := subject_lock_state(target_distance)
+		if lock_state == "LOCKED":
+			_progress += delta / subject_time
+			scan_progress.emit(clampf(_progress, 0.0, 1.0), "SIGNAL LOCK %.1fM • %s" % [target_distance, target.display_name.to_upper()])
+		else:
+			_progress = maxf(0.0, _progress - delta * lock_decay_rate)
+			var cue := "BACK OFF" if lock_state == "TOO_CLOSE" else "MOVE CLOSER"
+			scan_progress.emit(clampf(_progress, 0.0, 1.0), "%s %.1fM • %s" % [cue, target_distance, target.display_name.to_upper()])
 		if _progress >= 1.0:
 			target.scanned = true
 			subject_scanned.emit(target)
@@ -48,6 +58,13 @@ func tick(delta: float, camera: Camera3D, enabled: bool) -> void:
 			_reset()
 		return
 	_reset()
+
+func subject_lock_state(distance: float) -> String:
+	if distance < subject_min_lock_range:
+		return "TOO_CLOSE"
+	if distance > subject_max_lock_range:
+		return "TOO_FAR"
+	return "LOCKED"
 
 func _reset() -> void:
 	_progress = 0.0
