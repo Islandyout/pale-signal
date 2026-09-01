@@ -84,6 +84,14 @@ jobs:
           grep -q 'collision.name = "ScannerBody"' reboot/scripts/wildlife_system.gd
           grep -q 'if target == sample:' reboot/scripts/game_root.gd
           grep -q 'target.interaction_id.begins_with("wildlife|flat_grazer|")' reboot/scripts/game_root.gd
+      - name: Verify archaeology input isolation contract
+        run: |
+          set -eu
+          grep -q 'add_to_group("eva_controller")' reboot/scripts/eva_controller.gd
+          grep -q 'var movement_enabled := true' reboot/scripts/eva_controller.gd
+          grep -q '_set_eva_movement(false)' reboot/scripts/archaeology_system.gd
+          grep -q '_set_eva_movement(true)' reboot/scripts/archaeology_system.gd
+          grep -q 'call_group("eva_controller", "set_movement_enabled", value)' reboot/scripts/archaeology_system.gd
       - name: Prepare Godot export templates
         run: |
           set -eu
