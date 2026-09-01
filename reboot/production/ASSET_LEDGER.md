@@ -26,7 +26,8 @@ During mechanic development, procedural fallback meshes keep the game playable w
 ## Identity transformation record
 
 - The Talari civilian GLB is an animation/scale source, not the final Talari presentation. `WorldArt._decorate_talari()` adds the authored cranial sensory fan, asymmetric survey mantle, restrained luminous survey bars, and field transceiver around the imported base. These elements are generated in-project and therefore do not add a third-party license obligation.
-- The hero ship, Flat Grazer, Pale Signal artifacts, Kestra hero archaeology, and final Talari body/face treatment remain subject to the same rule: source assets may accelerate production, but their final presentation must be custom or substantially transformed.
+- The Flat Grazer fallback now establishes the authored species morphology rather than a stock quadruped placeholder: a low browsing disk, overlapping dorsal plates, offset sensory sail, three-tooth grazing rake, six short stilt legs, and restrained paired field sensors. These elements are generated in-project and therefore add no third-party license obligation. A future verified `flat_grazer.glb` may replace or augment source geometry, but it must preserve this substantially transformed identity rather than becoming the final presentation unchanged.
+- The hero ship, Pale Signal artifacts, Kestra hero archaeology, and final Talari body/face treatment remain subject to the same rule: source assets may accelerate production, but their final presentation must be custom or substantially transformed.
 
 ## Source pages
 
