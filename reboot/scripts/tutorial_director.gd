@@ -35,8 +35,33 @@ func _process(_delta: float) -> void:
 		reset_current()
 
 func start() -> void:
-	request_intro_cutscene.emit()
+	_restore_saved_progress()
+	if index <= 0:
+		request_intro_cutscene.emit()
+	if index >= LESSONS.size():
+		objective_changed.emit("TRAINING COMPLETE", "Every lesson used the production mechanic. Continue into Tethys without a ruleset swap.", 1.0)
+		return
 	_emit_current()
+
+func _restore_saved_progress() -> void:
+	var saved := SaveSystem.load_state()
+	if not saved.has("tutorial") or not (saved["tutorial"] is Dictionary):
+		return
+	restore(saved["tutorial"] as Dictionary)
+
+func restore(data: Dictionary) -> void:
+	index = clampi(int(data.get("index", 0)), 0, LESSONS.size())
+	completed.clear()
+	if data.has("completed") and data["completed"] is Dictionary:
+		completed = (data["completed"] as Dictionary).duplicate(true)
+	skipped.clear()
+	if data.has("skipped") and data["skipped"] is Dictionary:
+		skipped = (data["skipped"] as Dictionary).duplicate(true)
+	# Lesson-local analog progress is intentionally reset. Saves are written at
+	# completed lesson boundaries, so a loaded lesson must still be performed.
+	_move_distance = 0.0
+	_look_degrees = 0.0
+	_nav_seen.clear()
 
 func event(name: String, payload = null) -> void:
 	if index >= LESSONS.size(): return
