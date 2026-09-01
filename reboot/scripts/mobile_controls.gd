@@ -11,12 +11,26 @@ var left_position := Vector2.ZERO
 var look_last := Vector2.ZERO
 var stick_radius := 74.0
 var _buttons := []
+var _cutscene_skip_button: Button
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	visible = DisplayServer.is_touchscreen_available()
-	if visible: _build_buttons()
+	if visible:
+		_build_buttons()
+		_build_cutscene_skip_button()
+
+func _process(_delta: float) -> void:
+	# GameRoot intentionally hides the normal touch layer while a framing
+	# cutscene owns the camera. Keep one independent touch target alive so the
+	# same cutscene_skip action available on desktop remains reachable on mobile.
+	if _cutscene_skip_button:
+		_cutscene_skip_button.visible = DisplayServer.is_touchscreen_available() and not visible
+
+func _exit_tree() -> void:
+	if is_instance_valid(_cutscene_skip_button):
+		_cutscene_skip_button.queue_free()
 
 func set_mode(value: String) -> void:
 	_release_left_actions()
@@ -93,6 +107,20 @@ func _build_buttons() -> void:
 	_add_hold_button("roll_left", "ROLL L", Vector2(-308, -250), "roll_left")
 	_add_hold_button("roll_right", "ROLL R", Vector2(-308, -178), "roll_right")
 	set_mode(mode)
+
+func _build_cutscene_skip_button() -> void:
+	var button := Button.new()
+	button.name = "MobileCutsceneSkip"
+	button.text = "SKIP"
+	button.custom_minimum_size = Vector2(112, 58)
+	button.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	button.position = Vector2(-132, 20)
+	button.visible = false
+	button.pressed.connect(func(): _tap_action("cutscene_skip"))
+	# Keep the skip target outside this Control's visibility tree. GameRoot hides
+	# MobileControls during cinematics; the viewport-root button remains usable.
+	get_tree().root.add_child.call_deferred(button)
+	_cutscene_skip_button = button
 
 func _new_button(label: String, offset: Vector2) -> Button:
 	var b := Button.new()
