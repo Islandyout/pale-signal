@@ -14,6 +14,15 @@ func _init() -> void:
 	_assert(is_zero_approx(outside_alert), "alert must not propagate beyond the local herd radius")
 	_assert(is_zero_approx(calm_alert), "calm neighbors must not fabricate disturbance")
 
+	var identity := wildlife._make_flat_grazer_fallback(0)
+	_assert(identity.name == "FlatGrazerIdentity", "Flat Grazer fallback must retain its authored species identity root")
+	_assert(identity.get_node_or_null("BrowsingDisk") != null, "Flat Grazer must retain its low browsing-disk silhouette")
+	_assert(identity.get_node_or_null("LateralSensorySail") != null, "Flat Grazer must retain its asymmetric sensory sail")
+	_assert(identity.get_node_or_null("GrazingRake01") != null, "Flat Grazer must retain a functional grazing-rake head cue")
+	_assert(identity.get_node_or_null("StiltLeg06") != null, "Flat Grazer must retain six-leg locomotion identity")
+	_assert(identity.get_node_or_null("FieldSensorL") != null and identity.get_node_or_null("FieldSensorR") != null, "Flat Grazer must retain restrained paired field sensors")
+	identity.free()
+
 	wildlife.free()
 	if failures == 0:
 		print("PALE SIGNAL WILDLIFE TESTS: PASS")
