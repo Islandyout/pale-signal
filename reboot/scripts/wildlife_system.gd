@@ -6,6 +6,8 @@ extends Node3D
 # mechanic completion or changing progression.
 const GRAZER_COUNT := 5
 const PLAYER_AVOID_RADIUS := 8.0
+const HERD_ALERT_RADIUS := 14.0
+const HERD_ALERT_GAIN := 0.82
 const GRAZER_SPEED := 0.85
 const TETHYS_BOUNDS := 46.0
 
@@ -100,6 +102,27 @@ func _make_flat_grazer_fallback(index: int) -> Node3D:
 		root.add_child(leg)
 	return root
 
+func alert_level_for_neighbor(distance: float, neighbor_fear: float) -> float:
+	# Alert transfer is distance-weighted so a startled animal disturbs its local
+	# herd instead of flipping every creature in the basin into the same state.
+	if neighbor_fear <= 0.01 or distance >= HERD_ALERT_RADIUS:
+		return 0.0
+	return clampf(neighbor_fear * (1.0 - distance / HERD_ALERT_RADIUS) * HERD_ALERT_GAIN, 0.0, 1.0)
+
+func _neighbor_alert(index: int, position: Vector3) -> float:
+	var alert := 0.0
+	for other_index in range(_grazers.size()):
+		if other_index == index:
+			continue
+		var other: Dictionary = _grazers[other_index]
+		var other_node := other["node"] as Node3D
+		if not is_instance_valid(other_node):
+			continue
+		var offset := other_node.global_position - position
+		offset.y = 0.0
+		alert = maxf(alert, alert_level_for_neighbor(offset.length(), float(other["fear"])))
+	return alert
+
 func _update_grazer(index: int, delta: float, player_position: Vector3) -> void:
 	var state: Dictionary = _grazers[index]
 	var grazer := state["node"] as Node3D
@@ -112,6 +135,8 @@ func _update_grazer(index: int, delta: float, player_position: Vector3) -> void:
 	to_player.y = 0.0
 	if to_player.length() < PLAYER_AVOID_RADIUS:
 		fear = 1.0
+	else:
+		fear = maxf(fear, _neighbor_alert(index, grazer.global_position))
 
 	var desired := Vector3.ZERO
 	if fear > 0.01 and to_player.length_squared() > 0.01:
