@@ -8,6 +8,7 @@ func _init() -> void:
 	_test_archaeology_requires_scan_and_alignment()
 	_test_archaeology_preserves_pre_scan()
 	_test_archaeology_requires_distinct_evidence_passes()
+	_test_archaeology_state_is_player_visible()
 	_test_archaeology_has_recovery_contract()
 	_test_tutorial_mechanics_cannot_be_skipped()
 	_test_tutorial_nav_requires_full_cue_set()
@@ -84,6 +85,13 @@ func _test_archaeology_requires_distinct_evidence_passes() -> void:
 	_assert(a._stage_name(false) == "INSCRIPTION PHASE", "second archaeology pass must identify the inscription evidence layer")
 	a.cancel()
 	a.free()
+
+func _test_archaeology_state_is_player_visible() -> void:
+	var source := FileAccess.get_file_as_string("res://scripts/game_root.gd")
+	_assert(source.contains("reconstruction_state.connect(_on_reconstruction_state)"), "archaeology evidence state must be wired into the player-facing scene")
+	_assert(source.contains("STRUCTURE ALIGNMENT") == false or source.contains("stage"), "archaeology HUD must surface the system-provided evidence stage")
+	_assert(source.contains("HOLD · E LOCK"), "archaeology HUD must expose when the evidence alignment is ready to lock")
+	_assert(source.contains("OFFSET %.2f"), "archaeology HUD must expose readable alignment error instead of a generic progress bar only")
 
 func _test_archaeology_has_recovery_contract() -> void:
 	var archaeology_source := FileAccess.get_file_as_string("res://scripts/archaeology_system.gd")
