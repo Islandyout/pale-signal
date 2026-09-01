@@ -1,56 +1,41 @@
 # Project Lead Status
 
-Status date: 2026-08-30
+Status date: 2026-09-01
 
-The canonical playable prototype remains `prototype/pale-signal.html.html`, delivered through the root PWA shell and synchronized Android wrapper.
+The canonical production target is the clean Godot reboot on branch `reboot-godot`, rooted at `reboot/`. The legacy browser prototype is preserved only as historical/reference material and must not be used as the production architecture or implementation target.
 
 ## Current phase
-Vertical Slice 2.0 — Tethys / Kestra remains under **feature freeze and validation**. The browser prototype is broadly code-side complete, but the slice is not approved until the Quality Gates have physical/human evidence.
+Tethys / Kestra production reboot — first-hour vertical slice implementation and hardening.
 
-This week materially improved the slice through:
-- continuous-flight, EVA, interaction, Kestra, archaeology, audio, animation, mobile usability and first-hour polish;
-- authored Kestra collision proxies and terrain conformance;
-- profiler/evidence capture, persistence contracts, accessibility/recovery and CI hardening;
-- a playable Survey Academy with real-action completion across surface/EVA, Kestra, flight, systems, Signal and interface mechanics;
-- PWA cache v42 and passing current Pages/live-regression delivery on the latest gameplay build before this status-only documentation update.
+The reboot currently provides an exportable Godot 4.7.2 project with isolated gameplay systems, mechanic contracts, save recovery coverage, a Web export, and a native Android export pipeline. The immediate objective remains one exceptional Tethys/Kestra first hour before any breadth expansion.
 
-## Specialist review
-- Agent 01 Core Gameplay — **ACCEPT with one P1 correction**: real mechanics and playable onboarding are in place; first-hour sample beat must not infer a new collection from old inventory.
-- Agent 02 Technical/Performance — **REQUEST CHANGES / evidence**: architecture and Godot migration plan are accepted, but Gate D remains unapproved without real-device/desktop captures.
-- Agent 03 Art/Tech Art — **ACCEPT implementation, validation pending**: visual bible, authored Kestra density, collision and terrain conformance exist; physical traversal/approach must confirm no floating/sunk or penetrable hero geometry.
-- Agent 04 Character/Animation — **DEFER authored-rig fidelity to Godot/Blender production**: browser procedural refinement is sufficient for prototype scope; further layered browser animation work is anti-overengineering.
-- Agent 05 World/Narrative — **ACCEPT**: dense Kestra, routines, archaeology contradiction and first-hour cadence fit the slice; no additional world breadth approved.
-- Agent 06 UX/UI/Mobile — **ACCEPT implementation, REQUEST CHANGES / evidence**: playable tutorial is the correct onboarding model and shortcut conflict was fixed; touch/readability still require device/new-player validation.
-- Agent 07 Audio — **ACCEPT prototype implementation**: distinct procedural state mix exists; authored asset fidelity is deferred to production rather than expanded in-browser.
-- Agent 08 QA/Production — **ACCEPT**: evidence rules correctly reject unmeasured performance/quality claims; stale Kestra blockers were reconciled into implemented-vs-physical-validation status.
+## Current production direction
+- Continuous manual flight remains the core traversal language.
+- Camera look stays independent from ship steering.
+- VTOL lift stays independent from nose pitch.
+- Tutorial progression must be earned through the real mechanics; cutscenes may frame or reveal but cannot substitute for launch, flight, landing, scanning, gathering, archaeology, or other mechanic completion.
+- Mobile uses a purpose-built touch layer mapped onto the same mechanics rather than a simplified alternate game.
+- Gameplay systems remain isolated across EVA, flight, interaction, scanner, archaeology, wildlife, NPCs, tutorial, save, Signal, and audio.
+- Hero ship, Talari identity, Flat Grazer, Pale Signal artifacts, and hero archaeology require custom or substantially transformed presentation.
+- Zero-cost policy and explicit asset/license provenance remain mandatory.
 
-## Quality-gate position
-- Gate A Player feel — **NOT APPROVED**: uninterrupted new-player evidence missing.
-- Gate B Content density — **IMPLEMENTED; validation pending**.
-- Gate C Presentation — **IMPLEMENTED; physical coherence validation pending**.
-- Gate D Performance — **NOT APPROVED**: no real hardware profiler evidence.
-- Gate E Accessibility/usability — **NOT APPROVED**: physical touch/readability/new-player evidence missing.
-- Gate F Zero-cost — **PASS for current slice implementation**.
-- Gate G Anti-overengineering — **PASS**: feature freeze remains active; authored-rig/audio fidelity moves to production engine instead of more browser layers.
+## Build and CI position
+Current `reboot-godot` head: `4669a3d910396ee869fd25c740d4acf906f837ab` (`Fix save recovery test JSON normalization`).
 
-## Production engine
-Godot 4.x remains the approved zero-cost production-engine recommendation after browser-slice validation. See `GODOT_MIGRATION_PLAN.md`.
+Reboot Godot CI run #71 completed successfully on that head after the standalone save-recovery regression was corrected. The pipeline currently gates parser/import checks, mechanic/regression checks, Web export, Android export, and artifact publication. Successful CI proves build/export health only; it does not prove visual quality, device performance, touch usability, or human-playtest quality.
 
-## Remaining blockers before slice approval
-1. Fix the first-hour director sample-state ambiguity using an actual harvest event or session delta; do not create a new subsystem.
-2. Low/mid/high Android physical profiler captures.
-3. Desktop reference profiler capture.
-4. Physical install/update/launch test of the current APK.
-5. Uninterrupted human first-hour playthrough including save/reload/new-game and frustration notes.
-6. During physical Kestra traversal/approach, verify authored solids cannot be penetrated and hero geometry does not visibly float/sink.
+## Asset / license position
+The reboot asset ledger is authoritative under `reboot/production/`. Imported production-base assets have explicit source, pinned revision, license, and integrity records. Generic CC0 assets remain source material rather than final identity, and the designated hero assets remain scheduled for custom/substantially transformed treatment.
 
-No claim of universal mobile 60 FPS is permitted until the measurements exist.
+## Strongest remaining player-facing priorities
+1. Deepen the authored Tethys/Kestra first-hour experience rather than expand to another world.
+2. Continue improving flight feel, scanning skill, archaeology/reconstruction depth, Talari behavior, wildlife ecology, contextual UI, and audio only where those changes strengthen the existing first hour.
+3. Add or strengthen mechanic regression contracts before broadening any critical system.
+4. Keep Web, Android, and desktop exports healthy as gameplay changes land.
+5. When implementation reaches a state where only physical-device or human validation remains, stop cosmetic churn and record exact validation requirements instead.
 
-## Approved next priorities
-1. Close the sample-state ambiguity with the smallest possible event/session-delta fix and regression check.
-2. Collect physical Android/desktop QA evidence and first-hour human evidence.
-3. Fix only concrete regressions exposed by that evidence.
-4. If gates pass, approve the slice and begin the Godot/Blender authored-production migration; otherwise remain frozen and address measured blockers only.
+## Scope freeze
+Do not add new planets, civilizations, major upgrade trees, HUD subsystems, broad survival systems, large-scale city generation, or other breadth expansion merely to create work. The Tethys/Kestra first hour is the product quality benchmark.
 
-## Scope rule
-No new planets, civilizations, major upgrade trees, survival meters, navigation subsystems, large-scale city generation or additional fragment-site breadth until Vertical Slice 2.0 passes validation.
+## Evidence rule
+Do not claim visual, performance, device, thermal, touch-usability, or human-playtest gates without measurable evidence from the relevant environment. CI/export success is not a substitute for those gates.
