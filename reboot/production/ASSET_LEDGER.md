@@ -1,6 +1,6 @@
 # Approved GLB / glTF asset pool
 
-The reboot uses local imported assets only after their source and license are recorded. Godot recommends glTF 2.0 and supports both `.gltf` and `.glb`; GLB is the preferred shipping format.
+The reboot uses local imported assets only after their source and license are recorded. Godot recommends glTF 2.0 and supports both `.gltf` and `.glb`; GLB is preferred for shipping when the audited source is available in that form. Do not rename or transcode an audited source merely to satisfy the preference without updating its integrity record.
 
 | Use | Source | Candidate pack | Format | License | Reboot policy |
 |---|---|---|---|---|---|
@@ -12,16 +12,19 @@ The reboot uses local imported assets only after their source and license are re
 | EVA/Talari animation base | Quaternius | Universal Animation Library / Library 2 | GLB | CC0 | approved for retargeting / base motion only |
 | Terrain materials | Poly Haven | Rocky Terrain / Rock Ground families | glTF/PBR | CC0 | approved |
 
-## Required local filenames
+## Current audited local import paths
 
-- `res://assets/imported/ship_player.glb`
+These paths reflect the binaries currently fetched and verified by `tools/fetch_cc0_assets.py` and Godot CI. They must stay synchronized with `ASSET_LICENSES.md`, the fetch script, `AssetLoader`, and CI integrity/import checks.
+
+- `res://assets/imported/ship_player.gltf`
 - `res://assets/imported/eva_suit.glb`
 - `res://assets/imported/talari_civilian.glb`
 - `res://assets/imported/kestra_module.glb`
-- `res://assets/imported/flat_grazer.glb`
 - `res://assets/imported/humanoid_animations.glb`
 
-During mechanic development, procedural fallback meshes keep the game playable when binaries are absent. Production/release CI will later switch approved production entries from optional to required and fail when they are missing.
+`flat_grazer.glb` is deliberately **not** listed as a current imported binary because the production Flat Grazer identity is custom-authored in-project today. A future external or custom binary must receive its own provenance/integrity entry before it can replace or augment that presentation.
+
+During mechanic development, procedural fallback meshes keep the game playable when binaries are absent. Production/release CI may promote approved entries from fetched/verified dependencies to bundled required release assets only when their provenance, integrity, and final-art treatment are all recorded.
 
 ## Identity transformation record
 
