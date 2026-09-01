@@ -1,5 +1,6 @@
 extends SceneTree
 
+const SaveSystemScript = preload("res://scripts/save_system.gd")
 const PRIMARY := "user://pale_signal_reboot.save"
 const BACKUP := "user://pale_signal_reboot.save.bak"
 const TEMP := "user://pale_signal_reboot.save.tmp"
@@ -8,10 +9,10 @@ func _init() -> void:
 	_cleanup()
 	var previous := {"tutorial": {"index": 4}, "campaign": {"fragments": {"tethys_1": true}}}
 	var current := {"tutorial": {"index": 6}, "campaign": {"fragments": {"tethys_1": true, "tethys_2": true}}}
-	if not SaveSystem.save_state(previous):
+	if not SaveSystemScript.save_state(previous):
 		_fail("initial recovery fixture save failed")
 		return
-	if not SaveSystem.save_state(current):
+	if not SaveSystemScript.save_state(current):
 		_fail("second recovery fixture save failed")
 		return
 
@@ -22,7 +23,7 @@ func _init() -> void:
 	corrupt.store_string("{ interrupted")
 	corrupt.close()
 
-	var recovered := SaveSystem.load_state()
+	var recovered := SaveSystemScript.load_state()
 	if recovered != previous:
 		_fail("invalid primary save must recover the previous known-good backup")
 		return
