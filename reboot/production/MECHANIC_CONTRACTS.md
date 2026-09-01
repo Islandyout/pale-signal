@@ -12,3 +12,4 @@ These are hard regression contracts. A feature is not allowed to violate them ev
 8. **Fallback-safe art:** missing GLB assets may reduce visual quality in development but must not break collision, input, tutorial progression or core mechanics.
 9. **Mobile clarity before effects:** reduce optional actors/VFX before reducing interface legibility or making controls too small.
 10. **State ownership:** each mechanic owns its state in one script/system; tutorial/UI reads signals and may not mutate gameplay state to force completion.
+11. **Save continuity:** completed first-hour investigation steps must restore their matching physical world state. A scanned specimen stays identified after reload, and a collected one-shot specimen stays absent and cannot remain as an invisible scanner target.
