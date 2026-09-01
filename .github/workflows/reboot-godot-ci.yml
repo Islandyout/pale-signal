@@ -11,6 +11,10 @@ on:
       - 'reboot/**'
       - '.github/workflows/reboot-godot-ci.yml'
 
+concurrency:
+  group: reboot-godot-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
