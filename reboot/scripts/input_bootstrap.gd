@@ -19,17 +19,23 @@ static func ensure_actions() -> void:
 	_bind_key("roll_right", KEY_C)
 	_bind_key("brake", KEY_X)
 	_bind_key("nav_toggle", KEY_N)
-	# Later-world route cycling and the upgrade fabricator remain dormant until
-	# the Tethys/Kestra vertical slice clears its quality gates. Do not expose
-	# those campaign-breadth actions in the production first hour.
+	# GameRoot still contains dormant later-campaign handlers so future campaign
+	# work can remain isolated. Register those actions without any events: this
+	# keeps first-hour scope locked while avoiding nonexistent-action lookups in
+	# the production frame loop.
+	_ensure_action("route_next")
+	_ensure_action("fabricator")
 	_bind_key("tutorial", KEY_F2)
 	_bind_key("tutorial_reset", KEY_F3)
 	_bind_key("cutscene_skip", KEY_F4)
 	_bind_key("cutscene_skip", KEY_ESCAPE)
 	_bind_mouse("scan", MOUSE_BUTTON_RIGHT)
 
-static func _bind_key(action: StringName, keycode: Key) -> void:
+static func _ensure_action(action: StringName) -> void:
 	if not InputMap.has_action(action): InputMap.add_action(action)
+
+static func _bind_key(action: StringName, keycode: Key) -> void:
+	_ensure_action(action)
 	for event in InputMap.action_get_events(action):
 		if event is InputEventKey and event.physical_keycode == keycode: return
 	var e := InputEventKey.new()
@@ -37,7 +43,7 @@ static func _bind_key(action: StringName, keycode: Key) -> void:
 	InputMap.action_add_event(action, e)
 
 static func _bind_mouse(action: StringName, button: MouseButton) -> void:
-	if not InputMap.has_action(action): InputMap.add_action(action)
+	_ensure_action(action)
 	for event in InputMap.action_get_events(action):
 		if event is InputEventMouseButton and event.button_index == button: return
 	var e := InputEventMouseButton.new()
