@@ -7,6 +7,7 @@ func _init() -> void:
 	_test_scanner_requires_readable_range_lock()
 	_test_archaeology_requires_scan_and_alignment()
 	_test_archaeology_preserves_pre_scan()
+	_test_archaeology_requires_distinct_evidence_passes()
 	_test_archaeology_has_recovery_contract()
 	_test_tutorial_mechanics_cannot_be_skipped()
 	_test_tutorial_nav_requires_full_cue_set()
@@ -68,6 +69,20 @@ func _test_archaeology_preserves_pre_scan() -> void:
 	_assert(a.evidence_scanned, "starting reconstruction must preserve a scan completed before interaction")
 	a.cancel()
 	_assert(not a.evidence_scanned, "reset/cancel must clear archaeology evidence state")
+	a.free()
+
+func _test_archaeology_requires_distinct_evidence_passes() -> void:
+	var a := ArchaeologySystem.new()
+	a.mark_scanned()
+	a.begin()
+	_assert(a.required_passes >= 2, "hero archaeology must require more than one evidence correlation pass")
+	var first_target := a.target_alignment
+	a._advance_pass()
+	_assert(a.pass_index == 1, "first archaeology lock must advance to a second evidence pass")
+	_assert(a.active and not a.completed, "first archaeology pass must not complete reconstruction")
+	_assert(not is_equal_approx(a.target_alignment, first_target), "second archaeology pass must present a distinct alignment target")
+	_assert(a._stage_name(false) == "INSCRIPTION PHASE", "second archaeology pass must identify the inscription evidence layer")
+	a.cancel()
 	a.free()
 
 func _test_archaeology_has_recovery_contract() -> void:
