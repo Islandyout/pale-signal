@@ -39,7 +39,7 @@ func start() -> void:
 	if index <= 0:
 		request_intro_cutscene.emit()
 	if index >= LESSONS.size():
-		objective_changed.emit("TRAINING COMPLETE", "Every lesson used the production mechanic. Continue into Tethys without a ruleset swap.", 1.0)
+		objective_changed.emit("FIELD QUALIFICATION COMPLETE", "The production mechanics are proven. Continue investigating the Tethys/Kestra vertical slice; wider campaign systems remain locked until quality gates pass.", 1.0)
 		return
 	_emit_current()
 
@@ -128,7 +128,7 @@ func _complete() -> void:
 	lesson_completed.emit(id)
 	index += 1
 	if index >= LESSONS.size():
-		objective_changed.emit("TRAINING COMPLETE", "Every lesson used the production mechanic. Continue into Tethys without a ruleset swap.", 1.0)
+		objective_changed.emit("FIELD QUALIFICATION COMPLETE", "The production mechanics are proven. Continue investigating the Tethys/Kestra vertical slice; wider campaign systems remain locked until quality gates pass.", 1.0)
 		tutorial_completed.emit()
 		return
 	_emit_current()
