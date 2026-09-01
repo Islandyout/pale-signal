@@ -36,8 +36,9 @@ Status reflects the canonical Godot production work on branch `reboot-godot`. Th
 - [x] Save corruption recovery regression test.
 - [x] Web export artifact generation.
 - [x] Android APK export artifact generation.
+- [x] Native Windows x86_64 export artifact generation and CI gate.
 - [ ] Add regression contracts whenever a critical mechanic gap is fixed, before expanding related scope.
-- [ ] Preserve desktop export/support as the slice hardens.
+- [x] Preserve desktop export/support as the slice hardens.
 
 ### Asset / licensing
 - [x] Production asset ledger exists under `reboot/production/`.
