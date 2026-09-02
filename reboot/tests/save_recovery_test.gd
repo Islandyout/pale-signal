@@ -1,6 +1,7 @@
 extends SceneTree
 
 const SaveSystemScript = preload("res://scripts/save_system.gd")
+const CampaignStateScript = preload("res://scripts/campaign_state.gd")
 const PRIMARY := "user://pale_signal_reboot.save"
 const BACKUP := "user://pale_signal_reboot.save.bak"
 const TEMP := "user://pale_signal_reboot.save.tmp"
@@ -22,6 +23,33 @@ func _init() -> void:
 		_fail("Kestra contradiction must not leak into later fragment reconstructions")
 		return
 
+	# The two authored first-hour reconstructions must award persistent, distinct
+	# conclusions through the same fragment collection path used by gameplay.
+	var evidence_campaign = CampaignStateScript.new()
+	if not evidence_campaign.collect_fragment("tethys_1"):
+		_fail("Tethys reconstruction fixture must collect")
+		return
+	if not evidence_campaign.collect_fragment("tethys_2"):
+		_fail("Kestra reconstruction fixture must collect")
+		return
+	var tethys_evidence: Dictionary = evidence_campaign.evidence_for_fragment("tethys_1")
+	var kestra_evidence: Dictionary = evidence_campaign.evidence_for_fragment("tethys_2")
+	if tethys_evidence.is_empty() or kestra_evidence.is_empty():
+		_fail("first-hour fragment collection must create authored evidence")
+		return
+	if str(tethys_evidence.get("detail", "")) == str(kestra_evidence.get("detail", "")):
+		_fail("Tethys and Kestra evidence must preserve conflicting authored conclusions")
+		return
+	if evidence_campaign.evidence_count() != 2:
+		_fail("first-hour evidence ledger must contain both reconstruction conclusions")
+		return
+	if evidence_campaign.collect_fragment("tethys_1"):
+		_fail("recollecting an existing fragment must remain idempotent")
+		return
+	if evidence_campaign.evidence_count() != 2:
+		_fail("duplicate fragment collection must not duplicate evidence")
+		return
+
 	var previous := {
 		"tutorial": {"index": 4},
 		"campaign": {
@@ -31,7 +59,7 @@ func _init() -> void:
 					"title": "Kestra Foundation Contradiction",
 					"detail": "Talari survey and buried inscription disagree."
 				}
-			}
+		}
 		}
 	}
 	var current := {
