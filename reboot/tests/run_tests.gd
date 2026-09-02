@@ -20,6 +20,7 @@ func _init() -> void:
 	_test_campaign_fragment_unlock_chain()
 	_test_nemesis_requires_all_fragments()
 	_test_world_surface_contract()
+	_test_space_transition_requires_altitude_contract()
 	_test_disembark_contract()
 	_test_save_round_trip_shape()
 	if failures == 0:
@@ -201,6 +202,12 @@ func _test_world_surface_contract() -> void:
 	var world_source := FileAccess.get_file_as_string("res://scripts/campaign_world.gd")
 	_assert(world_source.contains("SURFACE_RADIUS"), "campaign worlds need bounded physical landing zones")
 	_assert(world_source.contains("approach_target"), "campaign worlds need physical approach targets")
+
+func _test_space_transition_requires_altitude_contract() -> void:
+	var source := FileAccess.get_file_as_string("res://scripts/ship_controller.gd")
+	_assert(source.contains("altitude >= atmosphere_ceiling"), "space transition must require actual altitude above the atmosphere ceiling")
+	_assert(not source.contains("not valid_surface or altitude >= atmosphere_ceiling"), "leaving the bounded surface footprint must not fabricate an atmosphere-to-space crossing")
+	_assert(source.contains("sideways at low altitude must never satisfy"), "flight controller must document the low-altitude surface-boundary regression contract")
 
 func _test_disembark_contract() -> void:
 	var source := FileAccess.get_file_as_string("res://scripts/game_root.gd")
