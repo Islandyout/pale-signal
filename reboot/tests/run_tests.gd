@@ -82,7 +82,8 @@ func _test_archaeology_requires_distinct_evidence_passes() -> void:
 	_assert(a.pass_index == 1, "first archaeology lock must advance to a second evidence pass")
 	_assert(a.active and not a.completed, "first archaeology pass must not complete reconstruction")
 	_assert(not is_equal_approx(a.target_alignment, first_target), "second archaeology pass must present a distinct alignment target")
-	_assert(a._stage_name(false) == "INSCRIPTION PHASE", "second archaeology pass must identify the inscription evidence layer")
+	_assert(a.evidence_layer_name() == "RESTRAINT TRACE", "second archaeology pass must identify the restraint-trace evidence layer")
+	_assert(a._stage_name(false) == "RESTRAINT TRACE ALIGNMENT", "player-facing archaeology stage must name the active evidence layer")
 	a.cancel()
 	a.free()
 
