@@ -78,9 +78,12 @@ func _find_archaeology(node: Node) -> ArchaeologySystem:
 	return null
 
 func _on_reconstruction_state(stage: String, alignment: float, target: float, lock_ready: bool) -> void:
-	_reconstruction_active = stage != "RESET" and stage != "RECONSTRUCTION LOCKED"
+	# A pre-scan emits reconstruction_state before reconstruction actually begins.
+	# Keep the guide silent until ArchaeologySystem owns an active reconstruction.
+	var reconstruction_running := _archaeology != null and is_instance_valid(_archaeology) and _archaeology.active
+	_reconstruction_active = reconstruction_running and stage != "RESET" and stage != "RECONSTRUCTION LOCKED"
 	_reconstruction_error = clampf(absf(target - alignment), 0.0, 1.0)
-	_reconstruction_lock_ready = lock_ready
+	_reconstruction_lock_ready = reconstruction_running and lock_ready
 	if stage == "RECONSTRUCTION LOCKED":
 		_reconstruction_active = false
 		_reconstruction_lock_ready = false
