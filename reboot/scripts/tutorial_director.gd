@@ -15,7 +15,7 @@ const LESSONS := [
 	{"id":"air", "title":"VERIFY THE AIR", "detail":"Look into open sky and hold SCAN until the atmospheric spectrum resolves."},
 	{"id":"scan", "title":"SCAN A SPECIMEN", "detail":"Centre the field specimen and hold SCAN. Scanning identifies; it does not collect."},
 	{"id":"collect", "title":"PHYSICAL COLLECTION", "detail":"Walk to the identified sample and interact to physically collect it."},
-	{"id":"archaeology", "title":"RECONSTRUCT EVIDENCE", "detail":"Scan the foundation. Align left/right until the lock zone is reached, then press E. F3 resets this step."},
+	{"id":"archaeology", "title":"RECONSTRUCT EVIDENCE", "detail":"Scan the foundation. Align left/right until the lock zone is reached, then press E/USE. F3 or touch RESET restarts this step."},
 	{"id":"board", "title":"BOARD THE SHIP", "detail":"Return to the ship and interact within boarding range."},
 	{"id":"launch", "title":"MANUAL VTOL LAUNCH", "detail":"Raise throttle. Lift is independent of nose pitch; no cutscene moves the ship."},
 	{"id":"space", "title":"ATMOSPHERE TO SPACE", "detail":"Climb continuously through the atmosphere ceiling using the real flight model."},
