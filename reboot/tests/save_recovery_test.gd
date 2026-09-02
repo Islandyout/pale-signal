@@ -7,6 +7,21 @@ const TEMP := "user://pale_signal_reboot.save.tmp"
 
 func _init() -> void:
 	_cleanup()
+	var campaign_source := FileAccess.get_file_as_string("res://scripts/campaign_state.gd")
+	var hud_source := FileAccess.get_file_as_string("res://scripts/production_hud.gd")
+	if not campaign_source.contains("\"evidence_notes\": evidence_notes.duplicate(true)"):
+		_fail("campaign snapshot must persist archaeology evidence notes")
+		return
+	if not campaign_source.contains("data.has(\"evidence_notes\")"):
+		_fail("campaign restore must recover archaeology evidence notes")
+		return
+	if not hud_source.contains("_reconstruction_is_tutorial_site = str(root.get(\"active_campaign_fragment\")).is_empty()"):
+		_fail("archaeology evidence payoff must capture reconstruction provenance")
+		return
+	if not hud_source.contains("if not _reconstruction_is_tutorial_site:"):
+		_fail("Kestra contradiction must not leak into later fragment reconstructions")
+		return
+
 	var previous := {
 		"tutorial": {"index": 4},
 		"campaign": {
