@@ -121,11 +121,13 @@ func _physics_process(delta: float) -> void:
 			touchdown.emit(absf(before_y), before_lateral, safe)
 		velocity = Vector3.ZERO
 
-	var altitude := global_position.y - float(surface.get("height", 0.0)) if valid_surface else atmosphere_ceiling + 1.0
-	if not _space_announced and (not valid_surface or altitude >= atmosphere_ceiling):
+	# Atmosphere completion is altitude-based. Leaving a bounded surface footprint
+	# sideways at low altitude must never satisfy the atmosphere-to-space lesson.
+	var altitude := global_position.y - float(surface.get("height", 0.0)) if valid_surface else global_position.y
+	if not _space_announced and altitude >= atmosphere_ceiling:
 		_space_announced = true
 		crossed_atmosphere.emit()
-	elif _space_announced and valid_surface and altitude < atmosphere_ceiling * 0.85:
+	elif _space_announced and altitude < atmosphere_ceiling * 0.85:
 		_space_announced = false
 
 	if Input.is_action_just_pressed("nav_toggle"):
