@@ -80,6 +80,10 @@ func cancel() -> void:
 func _set_eva_movement(value: bool) -> void:
 	# Group messaging preserves system isolation: reconstruction owns the lock
 	# request without reaching into GameRoot or mutating EVA transform/state.
+	# Unit/headless contracts instantiate this node before it enters a SceneTree;
+	# the runtime call is only meaningful once the node is actually inside one.
+	if not is_inside_tree():
+		return
 	get_tree().call_group("eva_controller", "set_movement_enabled", value)
 
 func evidence_layer_name() -> String:
