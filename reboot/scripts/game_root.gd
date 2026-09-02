@@ -416,7 +416,7 @@ func _update_interaction_hint() -> void:
 func _update_campaign_ui() -> void:
 	if campaign_label == null or ship_status_label == null: return
 	var location := current_world if not current_world.is_empty() else "DEEP SPACE"
-	var slice_fragments := min(campaign.fragment_count(), 2)
+	var slice_fragments: int = mini(campaign.fragment_count(), 2)
 	campaign_label.text = "TETHYS/KESTRA SLICE · %s\nFIRST-HOUR EVIDENCE %d / 2 · ROUTE %s" % [location.to_upper(), slice_fragments, campaign.selected_world.to_upper()]
 	ship_status_label.text = "FUEL %.0f / %.0f · HULL %.0f / %.0f" % [ship.fuel, ship.max_fuel, ship.hull, ship.max_hull]
 
