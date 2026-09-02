@@ -346,7 +346,7 @@ func _on_reconstruction_complete() -> void:
 	if campaign.collect_fragment(fragment_id):
 		campaign_world.mark_site_collected("fragment|" + fragment_id)
 		var count := campaign.fragment_count()
-		hint_label.text = "PALE SIGNAL FRAGMENT %d / 7 RECOVERED" % count
+		hint_label.text = "FIRST-HOUR EVIDENCE %d / 2 RECOVERED" % mini(count, 2)
 		campaign.select_objective_world()
 		_set_nav_destination(campaign.selected_world)
 		_save_game()
