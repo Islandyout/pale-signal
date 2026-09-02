@@ -27,6 +27,7 @@ var reconstruction_panel: PanelContainer
 var reconstruction_stage: Label
 var reconstruction_instruction: Label
 var alignment_track
+var _reconstruction_note_until := 0
 var _bound := false
 
 func _ready() -> void:
@@ -37,6 +38,10 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if not _bound:
 		return
+	if _reconstruction_note_until > 0 and Time.get_ticks_msec() >= _reconstruction_note_until:
+		_reconstruction_note_until = 0
+		if archaeology == null or not archaeology.active:
+			reconstruction_panel.visible = false
 	_update_context()
 	_update_campaign_summary()
 
@@ -172,6 +177,8 @@ func _build_hud() -> void:
 	reconstruction_box.add_child(alignment_track)
 	reconstruction_instruction = Label.new()
 	reconstruction_instruction.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	reconstruction_instruction.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	reconstruction_instruction.custom_minimum_size = Vector2(500, 34)
 	reconstruction_instruction.add_theme_font_size_override("font_size", 12)
 	reconstruction_box.add_child(reconstruction_instruction)
 
@@ -220,6 +227,7 @@ func _on_objective_changed(title: String, detail: String, progress: float) -> vo
 
 func _on_tutorial_completed() -> void:
 	reset_button.visible = false
+	_reconstruction_note_until = 0
 	reconstruction_panel.visible = false
 
 func _on_scan_progress(value: float, label: String) -> void:
@@ -232,8 +240,10 @@ func _on_scan_progress(value: float, label: String) -> void:
 
 func _on_reconstruction_state(stage: String, alignment: float, target: float, lock_ready: bool) -> void:
 	if archaeology == null or not archaeology.active:
-		reconstruction_panel.visible = false
+		if _reconstruction_note_until <= 0:
+			reconstruction_panel.visible = false
 		return
+	_reconstruction_note_until = 0
 	reconstruction_panel.visible = true
 	scan_panel.visible = false
 	reconstruction_stage.text = stage
@@ -246,9 +256,19 @@ func _on_reconstruction_state(stage: String, alignment: float, target: float, lo
 		reconstruction_instruction.text = "A / D  ·  ALIGN THE WHITE CURSOR WITH THE TARGET BAND"
 
 func _on_reconstruction_complete() -> void:
-	reconstruction_panel.visible = false
+	# Do not let the successful physical reconstruction collapse into a generic
+	# completion flash. The first-hour hero dig must immediately pay the player's
+	# work back with a concrete historical contradiction, using the existing
+	# contextual archaeology surface rather than adding another permanent HUD.
+	reconstruction_panel.visible = true
+	scan_panel.visible = false
+	reconstruction_stage.text = "CONFLICTING EVIDENCE"
+	alignment_track.set_state(archaeology.alignment, archaeology.target_alignment, archaeology.lock_tolerance, true, true)
+	reconstruction_instruction.text = "TALARI SURVEY: RECENT FLOOD REPAIR  //  BURIED INSCRIPTION: CENTURIES OLDER\nTHE OFFICIAL KESTRA ACCOUNT CANNOT EXPLAIN THE MARK."
+	_reconstruction_note_until = Time.get_ticks_msec() + 6500
 
 func _reset_step() -> void:
+	_reconstruction_note_until = 0
 	if archaeology != null and archaeology.active:
 		archaeology.cancel()
 	if tutorial != null:
