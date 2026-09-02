@@ -19,12 +19,25 @@ func _init() -> void:
 	var kestra_source := FileAccess.get_file_as_string("res://scripts/kestra_environment.gd")
 	_assert(kestra_source.contains("instantiate_or_fallback(\"kestra\""), "Kestra hero site must use the audited imported module with a fallback")
 	_assert(kestra_source.contains("fragment|tethys_2"), "authored Kestra presentation must remain attached to the save-compatible archaeology interaction")
+	_test_talari_instructor_contract()
 	if failures == 0:
 		print("KESTRA PRODUCTION SCOPE TEST: PASS")
 		quit(0)
 	else:
 		push_error("KESTRA PRODUCTION SCOPE TEST: %d FAILURE(S)" % failures)
 		quit(1)
+
+func _test_talari_instructor_contract() -> void:
+	var world_art_source := FileAccess.get_file_as_string("res://scripts/world_art.gd")
+	var talari_source := FileAccess.get_file_as_string("res://scripts/talari_instructor.gd")
+	_assert(world_art_source.contains("TalariInstructor.new()"), "the authored Talari instructor routine must remain mounted in the playable Tethys scene")
+	_assert(world_art_source.contains("talari_behavior.setup(talari_anchor, eva)"), "Talari behavior must observe the real EVA actor rather than a tutorial proxy")
+	_assert(talari_source.contains("attention_range"), "Talari instructor must retain a readable player-attention radius")
+	_assert(talari_source.contains("_face_observer(delta)"), "Talari instructor must visibly acknowledge a nearby player")
+	_assert(talari_source.contains("_patrol(delta)"), "Talari instructor must retain an authored idle patrol when the player is distant")
+	_assert(not talari_source.contains("Input."), "Talari presentation behavior must never consume player input")
+	_assert(not talari_source.contains("SaveSystem"), "Talari presentation behavior must never own save/progression state")
+	_assert(not talari_source.contains("tutorial.event"), "Talari presentation behavior must never fabricate tutorial completion")
 
 func _assert(value: bool, message: String) -> void:
 	if not value:
