@@ -70,6 +70,8 @@ jobs:
         run: godot --headless --path reboot --script res://tests/asset_import_test.gd
       - name: Run mechanic contracts
         run: godot --headless --path reboot --script res://tests/run_tests.gd
+      - name: Verify Tethys/Kestra production scope
+        run: godot --headless --path reboot --script res://tests/kestra_scope_test.gd
       - name: Verify mobile mode transitions release held input
         run: godot --headless --path reboot --script res://tests/mobile_controls_test.gd
       - name: Verify save corruption recovery
