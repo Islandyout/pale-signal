@@ -24,6 +24,8 @@ func _init() -> void:
 	_assert(not root_source.contains("THE FULL ASTER SYSTEM IS NOW YOUR MISSION"), "tutorial completion must not imply later worlds are production-ready")
 	_assert(root_source.contains("TETHYS/KESTRA INVESTIGATION ACTIVE"), "tutorial completion must hand off explicitly to the current vertical slice")
 	_assert(root_source.contains("FIRST-HOUR EVIDENCE %d / 2"), "production HUD must frame progress around the two authored first-hour evidence sites")
+	_assert(not root_source.contains("PALE SIGNAL FRAGMENT %d / 7 RECOVERED"), "first-hour recovery feedback must not expose the dormant seven-fragment campaign")
+	_assert(root_source.contains("FIRST-HOUR EVIDENCE %d / 2 RECOVERED"), "first-hour archaeology recovery must stay framed around the two production evidence sites")
 	var kestra_source := FileAccess.get_file_as_string("res://scripts/kestra_environment.gd")
 	_assert(kestra_source.contains("instantiate_or_fallback(\"kestra\""), "Kestra hero site must use the audited imported module with a fallback")
 	_assert(kestra_source.contains("fragment|tethys_2"), "authored Kestra presentation must remain attached to the save-compatible archaeology interaction")
