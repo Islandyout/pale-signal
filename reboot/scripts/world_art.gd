@@ -26,6 +26,10 @@ static func install(root: Node3D, eva: EVAController) -> Dictionary:
 	talari_anchor.add_child(talari_visual)
 	_decorate_talari(talari_anchor)
 	root.add_child(talari_anchor)
+	var talari_behavior := TalariInstructor.new()
+	talari_behavior.name = "TalariInstructorBehavior"
+	talari_anchor.add_child(talari_behavior)
+	talari_behavior.setup(talari_anchor, eva)
 	created["talari"] = talari_anchor
 
 	# The first imported Kestra module is deliberately only a structural base.
