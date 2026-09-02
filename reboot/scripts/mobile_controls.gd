@@ -29,15 +29,23 @@ func _process(_delta: float) -> void:
 		_cutscene_skip_button.visible = DisplayServer.is_touchscreen_available() and not visible
 
 func _exit_tree() -> void:
+	_release_virtual_actions()
 	if is_instance_valid(_cutscene_skip_button):
 		_cutscene_skip_button.queue_free()
 
 func set_mode(value: String) -> void:
-	_release_left_actions()
+	# A held touch button can be hidden by a ship/EVA mode transition before
+	# Godot emits button_up. Release every virtual hold action here so throttle,
+	# brake, roll, scan or movement can never leak into the next control mode.
+	_release_virtual_actions()
+	left_touch = -1
+	left_origin = Vector2.ZERO
+	left_position = Vector2.ZERO
 	mode = value
 	for item in _buttons:
 		var button: Button = item.button
 		button.visible = _button_visible(item.id)
+	queue_redraw()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible: return
@@ -92,6 +100,11 @@ func _set_axis_actions(negative: StringName, positive: StringName, value: float)
 
 func _release_left_actions() -> void:
 	for action in ["move_left","move_right","move_forward","move_backward","yaw_left","yaw_right","pitch_up","pitch_down"]:
+		Input.action_release(action)
+
+func _release_virtual_actions() -> void:
+	_release_left_actions()
+	for action in ["scan","throttle_up","throttle_down","brake","roll_left","roll_right"]:
 		Input.action_release(action)
 
 func _build_buttons() -> void:
