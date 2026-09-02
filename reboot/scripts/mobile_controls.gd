@@ -110,6 +110,9 @@ func _release_virtual_actions() -> void:
 func _build_buttons() -> void:
 	_add_hold_button("scan", "SCAN", Vector2(-108, -178), "scan")
 	_add_tap_button("interact", "USE", Vector2(-208, -106), "interact")
+	# F3 is a genuine recovery mechanic during reconstruction. Mobile receives
+	# the same action instead of requiring a keyboard-only escape hatch.
+	_add_tap_button("tutorial_reset", "RESET", Vector2(-208, -178), "tutorial_reset")
 	_add_hold_button("throttle_up", "THR +", Vector2(-108, -250), "throttle_up")
 	_add_hold_button("throttle_down", "THR -", Vector2(-108, -178), "throttle_down")
 	_add_hold_button("brake", "BRAKE", Vector2(-108, -106), "brake")
@@ -163,7 +166,7 @@ func _tap_action(action: StringName) -> void:
 	Input.action_release(action)
 
 func _button_visible(id: String) -> bool:
-	if mode == "eva": return id in ["scan","interact"]
+	if mode == "eva": return id in ["scan","interact","tutorial_reset"]
 	return id in ["throttle_up","throttle_down","brake","nav","interact","roll_left","roll_right"]
 
 func _draw() -> void:
