@@ -21,11 +21,21 @@ func _init() -> void:
 
 	Input.action_press("scan")
 	Input.action_press("move_forward")
+	Input.action_press("interact")
+	Input.action_press("tutorial_reset")
 	controls.left_touch = 8
 	controls.set_mode("ship")
 	_assert(not Input.is_action_pressed("scan"), "EVA scan hold must release when switching to ship mode")
 	_assert(not Input.is_action_pressed("move_forward"), "EVA movement must release when switching to ship mode")
+	_assert(not Input.is_action_pressed("interact"), "EVA interact tap must release when switching to ship mode")
+	_assert(not Input.is_action_pressed("tutorial_reset"), "EVA recovery tap must release when switching to ship mode")
 	_assert(controls.left_touch == -1, "ship transition must start with a fresh virtual-stick touch")
+
+	Input.action_press("nav_toggle")
+	Input.action_press("cutscene_skip")
+	controls.set_mode("eva")
+	_assert(not Input.is_action_pressed("nav_toggle"), "ship NAV tap must release when switching to EVA")
+	_assert(not Input.is_action_pressed("cutscene_skip"), "cinematic skip tap must release during control-state cleanup")
 
 	var source := FileAccess.get_file_as_string("res://scripts/mobile_controls.gd")
 	_assert(source.contains("_add_tap_button(\"tutorial_reset\", \"RESET\""), "mobile EVA must expose tutorial/reconstruction recovery")
