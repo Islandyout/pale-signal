@@ -7,8 +7,30 @@ const TEMP := "user://pale_signal_reboot.save.tmp"
 
 func _init() -> void:
 	_cleanup()
-	var previous := {"tutorial": {"index": 4}, "campaign": {"fragments": {"tethys_1": true}}}
-	var current := {"tutorial": {"index": 6}, "campaign": {"fragments": {"tethys_1": true, "tethys_2": true}}}
+	var previous := {
+		"tutorial": {"index": 4},
+		"campaign": {
+			"fragments": {"tethys_1": true},
+			"evidence_notes": {
+				"kestra_foundation_contradiction": {
+					"title": "Kestra Foundation Contradiction",
+					"detail": "Talari survey and buried inscription disagree."
+				}
+			}
+		}
+	}
+	var current := {
+		"tutorial": {"index": 6},
+		"campaign": {
+			"fragments": {"tethys_1": true, "tethys_2": true},
+			"evidence_notes": {
+				"kestra_foundation_contradiction": {
+					"title": "Kestra Foundation Contradiction",
+					"detail": "Talari survey and buried inscription disagree."
+				}
+			}
+		}
+	}
 	var expected_previous = JSON.parse_string(JSON.stringify(previous))
 	if not expected_previous is Dictionary:
 		_fail("could not normalize recovery fixture through JSON")
@@ -29,7 +51,7 @@ func _init() -> void:
 
 	var recovered := SaveSystemScript.load_state()
 	if recovered != expected_previous:
-		_fail("invalid primary save must recover the previous serialized known-good backup")
+		_fail("invalid primary save must recover the previous serialized known-good backup, including archaeology evidence")
 		return
 
 	_cleanup()
