@@ -27,6 +27,11 @@ func _init() -> void:
 	_assert(not Input.is_action_pressed("move_forward"), "EVA movement must release when switching to ship mode")
 	_assert(controls.left_touch == -1, "ship transition must start with a fresh virtual-stick touch")
 
+	var source := FileAccess.get_file_as_string("res://scripts/mobile_controls.gd")
+	_assert(source.contains("_add_tap_button(\"tutorial_reset\", \"RESET\""), "mobile EVA must expose tutorial/reconstruction recovery")
+	_assert(source.contains("\"scan\",\"interact\",\"tutorial_reset\""), "mobile recovery control must be available in EVA mode")
+	_assert(source.contains("_tap_action(\"cutscene_skip\")"), "mobile cinematic skip parity must remain intact")
+
 	controls.free()
 	if failures == 0:
 		print("PALE SIGNAL MOBILE CONTROLS TEST: PASS")
