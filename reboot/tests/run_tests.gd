@@ -11,7 +11,7 @@ func _init() -> void:
 	_test_archaeology_state_is_player_visible()
 	_test_archaeology_has_recovery_contract()
 	_test_tutorial_mechanics_cannot_be_skipped()
-	_test_tutorial_nav_requires_full_cue_set()
+	_test_tutorial_nav_requires_route_phases()
 	_test_tutorial_save_restore_contract()
 	_test_first_hour_world_state_restore_contract()
 	_test_vtol_is_pitch_independent_contract()
@@ -120,17 +120,36 @@ func _test_tutorial_mechanics_cannot_be_skipped() -> void:
 	_assert(hud_source.contains("SKIP CUTSCENE"), "HUD skip control must be labeled for cinematics only")
 	t.free()
 
-func _test_tutorial_nav_requires_full_cue_set() -> void:
-	var t := TutorialDirector.new()
-	t.index = 9
-	for state in ["TURN", "BURN", "COAST", "BRAKE"]:
-		t.event("nav_state", state)
-	_assert(t.index == 9, "navigation lesson must not complete before all five production cues are observed")
-	_assert(not t.completed.has("nav"), "partial navigation cue coverage must not fabricate lesson completion")
-	t.event("nav_state", "APPROACH")
-	_assert(t.index == 10, "navigation lesson must complete after TURN/BURN/COAST/BRAKE/APPROACH are all observed")
-	_assert(t.completed.has("nav"), "full navigation cue coverage should complete the navigation lesson")
-	t.free()
+func _test_tutorial_nav_requires_route_phases() -> void:
+	# Navigation guidance is situational. The lesson must prove that the player
+	# experienced departure, transfer, and approach without demanding cue states
+	# that a well-flown route can legitimately bypass.
+	var direct_route := TutorialDirector.new()
+	direct_route.index = 9
+	direct_route.event("nav_state", "BURN")
+	direct_route.event("nav_state", "COAST")
+	_assert(direct_route.index == 9, "navigation lesson must not complete without an approach-phase cue")
+	direct_route.event("nav_state", "APPROACH")
+	_assert(direct_route.index == 10, "BURN/COAST/APPROACH must satisfy the three real navigation phases")
+	_assert(direct_route.completed.has("nav"), "phase-complete navigation must mark the lesson complete")
+	direct_route.free()
+
+	var correction_route := TutorialDirector.new()
+	correction_route.index = 9
+	correction_route.event("nav_state", "TURN")
+	correction_route.event("nav_state", "BRAKE")
+	correction_route.event("nav_state", "APPROACH")
+	_assert(correction_route.index == 10, "TURN/BRAKE/APPROACH must also satisfy the three real navigation phases")
+	_assert(correction_route.completed.has("nav"), "alternate valid route cues must complete navigation")
+	correction_route.free()
+
+	var incomplete_route := TutorialDirector.new()
+	incomplete_route.index = 9
+	incomplete_route.event("nav_state", "APPROACH")
+	incomplete_route.event("nav_state", "COAST")
+	_assert(incomplete_route.index == 9, "navigation lesson must not complete without a departure-phase cue")
+	_assert(not incomplete_route.completed.has("nav"), "partial route-phase coverage must never fabricate navigation completion")
+	incomplete_route.free()
 
 func _test_tutorial_save_restore_contract() -> void:
 	var t := TutorialDirector.new()
