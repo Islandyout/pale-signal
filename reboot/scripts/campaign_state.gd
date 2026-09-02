@@ -3,8 +3,8 @@ extends RefCounted
 
 # Authoring data for later worlds is retained, but production remains hard-locked
 # to the Tethys/Kestra vertical slice until that first hour passes its quality gates.
-const PRODUCTION_WORLDS := ["Tethys"]
-const WORLD_ORDER := ["Tethys", "Cinder", "Vell", "Ossuary", "Hollow", "Nemesis"]
+const PRODUCTION_WORLDS := ["Tethys", "Kestra"]
+const WORLD_ORDER := ["Tethys", "Kestra", "Cinder", "Vell", "Ossuary", "Hollow", "Nemesis"]
 
 const WORLD_DATA := {
 	"Tethys": {
@@ -12,6 +12,12 @@ const WORLD_DATA := {
 		"color": Color("#445e51"),
 		"sky": Color("#6f8894"),
 		"resources": ["Pale Reed", "Lantern Cap", "Banded Ironstone", "Clathrate Pocket"],
+	},
+	"Kestra": {
+		"anchor": Vector3(0, 0, -1800),
+		"color": Color("#5d615f"),
+		"sky": Color("#747b80"),
+		"resources": ["Basalt Lamina", "Glass Reed", "Iron Nodule"],
 	},
 	"Cinder": {
 		"anchor": Vector3(0, 0, -5200),
@@ -47,7 +53,9 @@ const WORLD_DATA := {
 
 const FRAGMENTS := {
 	"tethys_1": {"world":"Tethys", "name":"Kneeling Array Fragment", "offset":Vector3(155, 0.8, -210)},
-	"tethys_2": {"world":"Tethys", "name":"Reed Sink Fragment", "offset":Vector3(-245, 0.8, -165)},
+	# Preserve the existing fragment id for save compatibility while moving the
+	# second first-hour investigation to its intended physical location on Kestra.
+	"tethys_2": {"world":"Kestra", "name":"Kestra Foundation Contradiction", "offset":Vector3(-120, 0.8, -95)},
 	"cinder_3": {"world":"Cinder", "name":"The Anvil Fragment", "offset":Vector3(180, 0.8, 145)},
 	"vell_4": {"world":"Vell", "name":"Under-Ice Relay Fragment", "offset":Vector3(-170, 0.8, -205)},
 	"ossuary_5": {"world":"Ossuary", "name":"Ossuary Spine Fragment", "offset":Vector3(215, 0.8, -150)},
@@ -107,6 +115,7 @@ func evidence_count() -> int:
 func world_unlocked(world: String) -> bool:
 	match world:
 		"Tethys": return true
+		"Kestra": return fragments.has("tethys_1")
 		"Cinder": return fragments.has("tethys_1") and fragments.has("tethys_2")
 		"Vell": return fragments.has("cinder_3")
 		"Ossuary": return fragments.has("vell_4")
