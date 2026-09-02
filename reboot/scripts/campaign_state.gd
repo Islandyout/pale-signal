@@ -63,6 +63,22 @@ const FRAGMENTS := {
 	"hollow_7": {"world":"Hollow", "name":"Drowned Choir Fragment", "offset":Vector3(190, 0.8, -220)},
 }
 
+# Reconstruction conclusions are authored evidence, not generic fragment rewards.
+# The first-hour pair deliberately conflicts: the Tethys arrangement reads as a
+# voluntary receiving posture, while the Kestra foundation preserves engineering
+# evidence that the same geometry was imposed under load. The player earns both
+# only through the physical reconstruction mechanic.
+const FRAGMENT_EVIDENCE := {
+	"tethys_1": {
+		"title": "Kneeling Array — Tethys Reading",
+		"detail": "Reconstructed postures face the Pale Signal source with open load paths and no restraint scars. The Tethys record reads as deliberate reception, possibly ritual or consent.",
+	},
+	"tethys_2": {
+		"title": "Foundation Contradiction — Kestra Reading",
+		"detail": "Kestra anchor sockets carry shear deformation and emergency reinforcement exactly where the Tethys reading implies voluntary alignment. Someone held this structure in position against force.",
+	},
+}
+
 const UPGRADE_ORDER := ["thrust", "fuel", "scan", "hull", "life", "heat", "rcs"]
 const UPGRADE_COSTS := {
 	"thrust": {"Banded Ironstone":2, "Vitrous Slag":1},
@@ -100,6 +116,9 @@ func collect_fragment(fragment_id: String) -> bool:
 	if not FRAGMENTS.has(fragment_id): return false
 	fragments[fragment_id] = true
 	collected_sites["fragment|" + fragment_id] = true
+	if FRAGMENT_EVIDENCE.has(fragment_id):
+		var evidence: Dictionary = FRAGMENT_EVIDENCE[fragment_id]
+		record_evidence(fragment_id, str(evidence.get("title", fragment_id)), str(evidence.get("detail", "")))
 	return true
 
 func record_evidence(note_id: String, title: String, detail: String) -> bool:
@@ -109,6 +128,10 @@ func record_evidence(note_id: String, title: String, detail: String) -> bool:
 
 func evidence_count() -> int:
 	return evidence_notes.size()
+
+func evidence_for_fragment(fragment_id: String) -> Dictionary:
+	if not evidence_notes.has(fragment_id): return {}
+	return (evidence_notes[fragment_id] as Dictionary).duplicate(true)
 
 # This describes dormant campaign progression data only. Production routing and
 # world construction are separately constrained by PRODUCTION_WORLDS.
