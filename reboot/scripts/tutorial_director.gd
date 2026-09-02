@@ -19,7 +19,7 @@ const LESSONS := [
 	{"id":"board", "title":"BOARD THE SHIP", "detail":"Return to the ship and interact within boarding range."},
 	{"id":"launch", "title":"MANUAL VTOL LAUNCH", "detail":"Raise throttle. Lift is independent of nose pitch; no cutscene moves the ship."},
 	{"id":"space", "title":"ATMOSPHERE TO SPACE", "detail":"Climb continuously through the atmosphere ceiling using the real flight model."},
-	{"id":"nav", "title":"NAVIGATION ASSIST", "detail":"Toggle NAV and follow TURN / BURN / COAST / BRAKE / APPROACH cues without surrendering control."},
+	{"id":"nav", "title":"NAVIGATION ASSIST", "detail":"Toggle NAV and fly the route yourself. Experience departure, transfer, and approach guidance without surrendering control."},
 	{"id":"landing", "title":"MANUAL LANDING", "detail":"Return to the training basin and touch down inside the safe vertical/lateral envelope."}
 ]
 
@@ -95,12 +95,18 @@ func event(name: String, payload = null) -> void:
 			if name == "crossed_atmosphere": _complete()
 		"nav":
 			if name == "nav_state":
-				_nav_seen[str(payload)] = true
+				# Guidance states are situational: a well-aligned pilot can legitimately
+				# bypass TURN, and a conservative approach can bypass BRAKE. Require one
+				# real cue from each navigation phase instead of forcing every branch.
+				var state := str(payload)
+				if state in ["TURN", "BURN"]: _nav_seen["departure"] = true
+				elif state in ["COAST", "BRAKE"]: _nav_seen["transfer"] = true
+				elif state == "APPROACH": _nav_seen["approach"] = true
 				var score := 0
-				for state in ["TURN", "BURN", "COAST", "BRAKE", "APPROACH"]:
-					if _nav_seen.has(state): score += 1
-				_emit_current(float(score) / 5.0)
-				if score >= 5: _complete()
+				for phase in ["departure", "transfer", "approach"]:
+					if _nav_seen.has(phase): score += 1
+				_emit_current(float(score) / 3.0)
+				if score >= 3: _complete()
 		"landing":
 			if name == "touchdown" and payload is Dictionary and payload.get("safe", false): _complete()
 
