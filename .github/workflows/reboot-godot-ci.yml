@@ -113,6 +113,12 @@ jobs:
           grep -q '_set_eva_movement(false)' reboot/scripts/archaeology_system.gd
           grep -q '_set_eva_movement(true)' reboot/scripts/archaeology_system.gd
           grep -q 'call_group("eva_controller", "set_movement_enabled", value)' reboot/scripts/archaeology_system.gd
+      - name: Verify archaeology guide audio only runs during reconstruction
+        run: |
+          set -eu
+          grep -q 'var reconstruction_running := _archaeology != null and is_instance_valid(_archaeology) and _archaeology.active' reboot/scripts/audio_director.gd
+          grep -q '_reconstruction_active = reconstruction_running' reboot/scripts/audio_director.gd
+          grep -q '_reconstruction_lock_ready = reconstruction_running and lock_ready' reboot/scripts/audio_director.gd
       - name: Prepare Godot export templates
         run: |
           set -eu
