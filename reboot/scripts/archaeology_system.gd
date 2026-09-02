@@ -56,7 +56,7 @@ func tick(delta: float) -> void:
 			active = false
 			_set_eva_movement(true)
 			reconstruction_progress.emit(1.0)
-			reconstruction_state.emit("RECONSTRUCTION LOCKED", alignment, target_alignment, true)
+			reconstruction_state.emit("EVIDENCE CORRELATED", alignment, target_alignment, true)
 			reconstruction_complete.emit()
 
 func _advance_pass() -> void:
@@ -82,12 +82,19 @@ func _set_eva_movement(value: bool) -> void:
 	# request without reaching into GameRoot or mutating EVA transform/state.
 	get_tree().call_group("eva_controller", "set_movement_enabled", value)
 
+func evidence_layer_name() -> String:
+	# Reconstruction is evidence work, not a generic two-step lock puzzle. The
+	# first pass reads how the structure carried force; the second reads whether
+	# its aligned geometry was restrained or deliberately held in posture.
+	if pass_index <= 0:
+		return "LOAD PATH"
+	return "RESTRAINT TRACE"
+
 func _stage_name(lock_ready: bool) -> String:
 	if not evidence_scanned:
 		return "SCAN REQUIRED"
-	if pass_index <= 0:
-		return "LOCK STRUCTURE" if lock_ready else "STRUCTURE ALIGNMENT"
-	return "LOCK INSCRIPTION" if lock_ready else "INSCRIPTION PHASE"
+	var layer := evidence_layer_name()
+	return "LOCK %s" % layer if lock_ready else "%s ALIGNMENT" % layer
 
 func _emit_state(lock_ready := false) -> void:
 	reconstruction_state.emit(_stage_name(lock_ready), alignment, target_alignment, lock_ready)
