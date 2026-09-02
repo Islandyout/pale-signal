@@ -35,8 +35,9 @@ func _exit_tree() -> void:
 
 func set_mode(value: String) -> void:
 	# A held touch button can be hidden by a ship/EVA mode transition before
-	# Godot emits button_up. Release every virtual hold action here so throttle,
-	# brake, roll, scan or movement can never leak into the next control mode.
+	# Godot emits button_up. Release every virtual action here so throttle,
+	# brake, roll, scan, movement, and one-frame tap actions can never leak into
+	# the next control mode.
 	_release_virtual_actions()
 	left_touch = -1
 	left_origin = Vector2.ZERO
@@ -104,7 +105,7 @@ func _release_left_actions() -> void:
 
 func _release_virtual_actions() -> void:
 	_release_left_actions()
-	for action in ["scan","throttle_up","throttle_down","brake","roll_left","roll_right"]:
+	for action in ["scan","interact","tutorial_reset","nav_toggle","cutscene_skip","throttle_up","throttle_down","brake","roll_left","roll_right"]:
 		Input.action_release(action)
 
 func _build_buttons() -> void:
