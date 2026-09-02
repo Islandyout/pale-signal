@@ -65,8 +65,6 @@ func _process(delta: float) -> void:
 		hud_progress.visible = hud_title.visible
 	if not cutscene_active and Input.is_action_just_pressed("route_next") and mode == "ship":
 		_cycle_route()
-	if not cutscene_active and Input.is_action_just_pressed("fabricator") and mode == "ship":
-		_use_fabricator()
 	if Input.is_action_just_pressed("interact") and not cutscene_active:
 		if mode == "eva": _handle_interaction()
 		elif ship.landed: _disembark()
@@ -218,7 +216,7 @@ func _build_ui() -> void:
 	layer.add_child(scan_bar)
 	var footer := Label.new()
 	footer.position = Vector2(18, 650)
-	footer.text = "WASD MOVE/THROTTLE · MOUSE LOOK ≠ STEERING · F/RMB SCAN · E BOARD/EXIT/USE · N NAV · TAB NEXT WORLD · U FABRICATOR · X BRAKE"
+	footer.text = "WASD MOVE/THROTTLE · MOUSE LOOK ≠ STEERING · F/RMB SCAN · E BOARD/EXIT/USE · N NAV · TAB ROUTE · X BRAKE"
 	footer.visible = not DisplayServer.is_touchscreen_available()
 	layer.add_child(footer)
 	mobile_controls = MobileControls.new()
@@ -292,7 +290,7 @@ func _handle_interaction() -> void:
 	if eva.global_position.distance_to(ship.global_position) <= boarding_range:
 		_set_mode("ship")
 		tutorial.event("boarded")
-		hint_label.text = "SHIP BOARDED · N NAV · TAB ROUTE · U FABRICATOR"
+		hint_label.text = "SHIP BOARDED · N NAV · TAB ROUTE"
 		return
 	if eva.global_position.distance_to(sample.global_position) <= 2.2:
 		if sample.scanned and not sample_collected:
@@ -372,21 +370,6 @@ func _set_nav_destination(world: String) -> void:
 	ship.nav_target = campaign_world.approach_target(world)
 	_update_campaign_ui()
 
-func _use_fabricator() -> void:
-	if not ship.landed:
-		hint_label.text = "FABRICATOR LOCKED DURING FLIGHT"
-		return
-	var upgrade := campaign.next_upgrade()
-	if upgrade.is_empty():
-		hint_label.text = "FABRICATOR · ALL SEVEN CORE UPGRADES INSTALLED"
-		return
-	if campaign.buy_upgrade(upgrade):
-		ship.apply_campaign_upgrades(campaign.upgrades)
-		hint_label.text = "FABRICATOR · %s UPGRADE INSTALLED" % upgrade.to_upper()
-		_save_game()
-	else:
-		hint_label.text = "FABRICATOR · %s NEEDS %s" % [upgrade.to_upper(), campaign.upgrade_cost_text(upgrade)]
-
 func _on_touchdown(v: float, l: float, safe: bool) -> void:
 	tutorial.event("touchdown", {"vertical":v, "lateral":l, "safe":safe})
 	hint_label.text = "TOUCHDOWN %s · V %.1f · L %.1f · E TO EXIT" % ["SAFE" if safe else "HARD", v, l]
@@ -398,7 +381,7 @@ func _on_world_changed(world: String) -> void:
 	_update_campaign_ui()
 
 func _on_tutorial_completed() -> void:
-	hint_label.text = "FIELD TRAINING COMPLETE · THE FULL ASTER SYSTEM IS NOW YOUR MISSION"
+	hint_label.text = "FIELD TRAINING COMPLETE · TETHYS/KESTRA INVESTIGATION ACTIVE"
 	campaign.select_objective_world()
 	_set_nav_destination(campaign.selected_world)
 	_save_game()
@@ -433,10 +416,9 @@ func _update_interaction_hint() -> void:
 func _update_campaign_ui() -> void:
 	if campaign_label == null or ship_status_label == null: return
 	var location := current_world if not current_world.is_empty() else "DEEP SPACE"
-	campaign_label.text = "ASTER SYSTEM · %s\nPALE SIGNAL %d / 7 · ROUTE %s" % [location.to_upper(), campaign.fragment_count(), campaign.selected_world.to_upper()]
-	var upgrade := campaign.next_upgrade()
-	var upgrade_text := "ALL UPGRADES" if upgrade.is_empty() else "NEXT %s" % upgrade.to_upper()
-	ship_status_label.text = "FUEL %.0f / %.0f · HULL %.0f / %.0f · %s" % [ship.fuel, ship.max_fuel, ship.hull, ship.max_hull, upgrade_text]
+	var slice_fragments := min(campaign.fragment_count(), 2)
+	campaign_label.text = "TETHYS/KESTRA SLICE · %s\nFIRST-HOUR EVIDENCE %d / 2 · ROUTE %s" % [location.to_upper(), slice_fragments, campaign.selected_world.to_upper()]
+	ship_status_label.text = "FUEL %.0f / %.0f · HULL %.0f / %.0f" % [ship.fuel, ship.max_fuel, ship.hull, ship.max_hull]
 
 func _save_game() -> void:
 	var tutorial_state := tutorial.snapshot() if tutorial != null else {}
