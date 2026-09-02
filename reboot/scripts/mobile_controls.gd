@@ -34,14 +34,16 @@ func _exit_tree() -> void:
 		_cutscene_skip_button.queue_free()
 
 func set_mode(value: String) -> void:
-	# A held touch button can be hidden by a ship/EVA mode transition before
-	# Godot emits button_up. Release every virtual action here so throttle,
-	# brake, roll, scan, movement, and one-frame tap actions can never leak into
-	# the next control mode.
+	# A held touch button or gesture can be hidden by a ship/EVA mode transition
+	# before Godot emits touch/button release. Clear both virtual controls so
+	# throttle, brake, roll, scan, movement, taps, and camera-look ownership can
+	# never leak into the next control mode.
 	_release_virtual_actions()
 	left_touch = -1
+	look_touch = -1
 	left_origin = Vector2.ZERO
 	left_position = Vector2.ZERO
+	look_last = Vector2.ZERO
 	mode = value
 	for item in _buttons:
 		var button: Button = item.button
