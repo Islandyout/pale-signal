@@ -28,6 +28,7 @@ var reconstruction_stage: Label
 var reconstruction_instruction: Label
 var alignment_track
 var _reconstruction_note_until := 0
+var _reconstruction_is_tutorial_site := false
 var _bound := false
 
 func _ready() -> void:
@@ -243,6 +244,10 @@ func _on_reconstruction_state(stage: String, alignment: float, target: float, lo
 		if _reconstruction_note_until <= 0:
 			reconstruction_panel.visible = false
 		return
+	# Capture reconstruction provenance while GameRoot still owns the active
+	# fragment identifier. This prevents the authored Kestra contradiction from
+	# leaking into later generic Pale Signal fragment reconstructions.
+	_reconstruction_is_tutorial_site = str(root.get("active_campaign_fragment")).is_empty()
 	_reconstruction_note_until = 0
 	reconstruction_panel.visible = true
 	scan_panel.visible = false
@@ -256,19 +261,29 @@ func _on_reconstruction_state(stage: String, alignment: float, target: float, lo
 		reconstruction_instruction.text = "A / D  ·  ALIGN THE WHITE CURSOR WITH THE TARGET BAND"
 
 func _on_reconstruction_complete() -> void:
-	# Do not let the successful physical reconstruction collapse into a generic
-	# completion flash. The first-hour hero dig must immediately pay the player's
-	# work back with a concrete historical contradiction, using the existing
-	# contextual archaeology surface rather than adding another permanent HUD.
+	if not _reconstruction_is_tutorial_site:
+		_reconstruction_note_until = 0
+		reconstruction_panel.visible = false
+		return
+	# The first-hour hero dig pays the physical reconstruction back with a
+	# persistent contradiction, without adding another permanent HUD subsystem.
 	reconstruction_panel.visible = true
 	scan_panel.visible = false
 	reconstruction_stage.text = "CONFLICTING EVIDENCE"
 	alignment_track.set_state(archaeology.alignment, archaeology.target_alignment, archaeology.lock_tolerance, true, true)
 	reconstruction_instruction.text = "TALARI SURVEY: RECENT FLOOD REPAIR  //  BURIED INSCRIPTION: CENTURIES OLDER\nTHE OFFICIAL KESTRA ACCOUNT CANNOT EXPLAIN THE MARK."
 	_reconstruction_note_until = Time.get_ticks_msec() + 6500
+	if campaign.record_evidence(
+		"kestra_foundation_contradiction",
+		"Kestra Foundation Contradiction",
+		"Talari survey dates the repair as recent; the buried inscription is centuries older. The official account cannot explain the mark."
+	):
+		if root != null and root.has_method("_save_game"):
+			root.call("_save_game")
 
 func _reset_step() -> void:
 	_reconstruction_note_until = 0
+	_reconstruction_is_tutorial_site = false
 	if archaeology != null and archaeology.active:
 		archaeology.cancel()
 	if tutorial != null:
@@ -290,7 +305,10 @@ func _update_campaign_summary() -> void:
 	var location := str(root.get("current_world"))
 	if location.is_empty():
 		location = "DEEP SPACE"
-	campaign_label.text = "%s  ·  SIGNAL %d/7  ·  ROUTE %s" % [location.to_upper(), campaign.fragment_count(), campaign.selected_world.to_upper()]
+	var evidence_text := ""
+	if campaign.evidence_count() > 0:
+		evidence_text = "  ·  EVIDENCE %d" % campaign.evidence_count()
+	campaign_label.text = "%s  ·  SIGNAL %d/7  ·  ROUTE %s%s" % [location.to_upper(), campaign.fragment_count(), campaign.selected_world.to_upper(), evidence_text]
 	var mode := str(root.get("mode"))
 	ship_status_label.visible = mode == "ship"
 	if ship_status_label.visible:
