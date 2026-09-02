@@ -72,6 +72,8 @@ jobs:
         run: godot --headless --path reboot --script res://tests/run_tests.gd
       - name: Verify scanner skill contract
         run: godot --headless --path reboot --script res://tests/scanner_skill_test.gd
+      - name: Verify archaeology evidence layers
+        run: godot --headless --path reboot --script res://tests/archaeology_evidence_test.gd
       - name: Verify Tethys/Kestra production scope
         run: godot --headless --path reboot --script res://tests/kestra_scope_test.gd
       - name: Verify mobile mode transitions release held input
