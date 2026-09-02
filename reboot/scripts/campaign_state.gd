@@ -70,6 +70,7 @@ var inventory: Dictionary = {}
 var fragments: Dictionary = {}
 var collected_sites: Dictionary = {}
 var upgrades: Dictionary = {}
+var evidence_notes: Dictionary = {}
 var selected_world := "Tethys"
 var ending_complete := false
 
@@ -92,6 +93,14 @@ func collect_fragment(fragment_id: String) -> bool:
 	fragments[fragment_id] = true
 	collected_sites["fragment|" + fragment_id] = true
 	return true
+
+func record_evidence(note_id: String, title: String, detail: String) -> bool:
+	if note_id.is_empty() or evidence_notes.has(note_id): return false
+	evidence_notes[note_id] = {"title": title, "detail": detail}
+	return true
+
+func evidence_count() -> int:
+	return evidence_notes.size()
 
 # This describes dormant campaign progression data only. Production routing and
 # world construction are separately constrained by PRODUCTION_WORLDS.
@@ -172,6 +181,7 @@ func snapshot() -> Dictionary:
 		"fragments": fragments.duplicate(true),
 		"collected_sites": collected_sites.duplicate(true),
 		"upgrades": upgrades.duplicate(true),
+		"evidence_notes": evidence_notes.duplicate(true),
 		"selected_world": selected_world,
 		"ending_complete": ending_complete,
 	}
@@ -183,6 +193,7 @@ func restore(data: Dictionary) -> void:
 	if data.has("upgrades") and data["upgrades"] is Dictionary:
 		var restored: Dictionary = data["upgrades"]
 		for id in UPGRADE_ORDER: upgrades[id] = int(restored.get(id, 0))
+	if data.has("evidence_notes") and data["evidence_notes"] is Dictionary: evidence_notes = (data["evidence_notes"] as Dictionary).duplicate(true)
 	selected_world = str(data.get("selected_world", selected_world))
 	if not PRODUCTION_WORLDS.has(selected_world): selected_world = "Tethys"
 	ending_complete = bool(data.get("ending_complete", false))
