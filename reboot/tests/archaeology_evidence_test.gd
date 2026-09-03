@@ -27,6 +27,16 @@ func _init() -> void:
 		push_error("campaign archaeology feedback must not expose dormant seven-fragment progression during the first hour")
 		quit(1)
 		return
+	if not game_root_source.contains("WorldArt.decorate_training_foundation(ruin)"):
+		push_error("hero tutorial archaeology must use the authored presentation layer")
+		quit(1)
+		return
+	var world_art_source := FileAccess.get_file_as_string("res://scripts/world_art.gd")
+	for authored_marker in ["HeroArchaeologyLanguage", "LoadRib", "RestraintShoe", "EvidenceTrace", "SurveyDatum"]:
+		if not world_art_source.contains(authored_marker):
+			push_error("hero archaeology presentation lost authored marker: %s" % authored_marker)
+			quit(1)
+			return
 	archaeology.free()
 	print("ARCHAEOLOGY EVIDENCE TEST: PASS")
 	quit(0)
