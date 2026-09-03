@@ -4,6 +4,10 @@ func _init() -> void:
 	var archaeology := ArchaeologySystem.new()
 	archaeology.mark_scanned()
 	archaeology.begin()
+	if archaeology.required_passes != 3:
+		push_error("hero archaeology must require three distinct evidence correlations")
+		quit(1)
+		return
 	if archaeology.evidence_layer_name() != "LOAD PATH":
 		push_error("first archaeology pass must expose the load-path evidence layer")
 		quit(1)
@@ -13,9 +17,18 @@ func _init() -> void:
 		push_error("second archaeology pass must expose the restraint-trace evidence layer")
 		quit(1)
 		return
+	archaeology.pass_index = 2
+	if archaeology.evidence_layer_name() != "ALTERATION SEQUENCE":
+		push_error("third archaeology pass must expose chronology that can challenge the storm-damage reading")
+		quit(1)
+		return
 	var source := FileAccess.get_file_as_string("res://scripts/archaeology_system.gd")
 	if not source.contains("EVIDENCE CORRELATED"):
 		push_error("completed reconstruction must report evidence correlation rather than a generic lock")
+		quit(1)
+		return
+	if not source.contains("storm damage"):
+		push_error("hero archaeology must connect physical chronology to the conflicting-history premise")
 		quit(1)
 		return
 	var game_root_source := FileAccess.get_file_as_string("res://scripts/game_root.gd")
