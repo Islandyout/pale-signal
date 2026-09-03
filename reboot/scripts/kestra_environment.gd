@@ -108,4 +108,73 @@ func _replace_fragment_visual() -> void:
 			var visual := target.get_node_or_null("Visual") as MeshInstance3D
 			if visual != null:
 				visual.visible = false
+			if target.get_node_or_null("HeroPaleArtifact") == null:
+				target.add_child(_build_pale_fragment_artifact())
 			return
+
+func _build_pale_fragment_artifact() -> Node3D:
+	# The fragment remains parented to the canonical Interactable so scanner,
+	# collection, save visibility and tutorial evidence keep one state owner.
+	# Presentation deliberately avoids a stock glowing cylinder: layered ceramic
+	# shards surround a dark impossible core and offset signal seams imply that
+	# the object was assembled around a field phenomenon rather than manufactured
+	# as a conventional device.
+	var artifact := Node3D.new()
+	artifact.name = "HeroPaleArtifact"
+	artifact.position = Vector3(0.0, 0.28, 0.0)
+	artifact.rotation_degrees = Vector3(-7.0, 18.0, 5.0)
+
+	var shell_mat := _material(Color("#c3cbc5"), 0.58, 0.18)
+	var core_mat := _material(Color("#11181b"), 0.24, 0.42)
+	var seam_mat := _material(Color("#8fd8d3"), 0.26, 0.28)
+	seam_mat.emission_enabled = true
+	seam_mat.emission = Color("#4ca8a2")
+	seam_mat.emission_energy_multiplier = 1.35
+
+	var core := MeshInstance3D.new()
+	core.name = "ImpossibleCore"
+	var core_mesh := SphereMesh.new()
+	core_mesh.radius = 0.31
+	core_mesh.height = 0.62
+	core_mesh.material = core_mat
+	core.mesh = core_mesh
+	core.scale = Vector3(0.78, 1.28, 0.62)
+	artifact.add_child(core)
+
+	for i in range(4):
+		var shard := MeshInstance3D.new()
+		shard.name = "CeramicShard%02d" % i
+		var shard_mesh := BoxMesh.new()
+		shard_mesh.size = Vector3(0.16 + float(i % 2) * 0.06, 0.88 - float(i) * 0.08, 0.31)
+		shard_mesh.material = shell_mat
+		shard.mesh = shard_mesh
+		var angle := float(i) * TAU / 4.0 + 0.22
+		shard.position = Vector3(cos(angle) * 0.43, 0.04 + float(i % 2) * 0.08, sin(angle) * 0.43)
+		shard.rotation_degrees = Vector3(-14.0 + float(i) * 7.0, rad_to_deg(angle) + 24.0, 9.0 - float(i) * 5.0)
+		artifact.add_child(shard)
+
+	for i in range(3):
+		var seam := MeshInstance3D.new()
+		seam.name = "SignalSeam%02d" % i
+		var seam_mesh := BoxMesh.new()
+		seam_mesh.size = Vector3(0.035, 0.52 - float(i) * 0.07, 0.055)
+		seam_mesh.material = seam_mat
+		seam.mesh = seam_mesh
+		var angle := 0.5 + float(i) * 2.04
+		seam.position = Vector3(cos(angle) * 0.34, -0.02 + float(i) * 0.08, sin(angle) * 0.34)
+		seam.rotation_degrees = Vector3(12.0 - float(i) * 9.0, rad_to_deg(angle), -7.0 + float(i) * 8.0)
+		artifact.add_child(seam)
+
+	var needle := MeshInstance3D.new()
+	needle.name = "FieldNeedle"
+	var needle_mesh := CylinderMesh.new()
+	needle_mesh.top_radius = 0.025
+	needle_mesh.bottom_radius = 0.045
+	needle_mesh.height = 0.72
+	needle_mesh.material = seam_mat
+	needle.mesh = needle_mesh
+	needle.position = Vector3(-0.15, 0.46, 0.12)
+	needle.rotation_degrees = Vector3(19.0, 0.0, -13.0)
+	artifact.add_child(needle)
+
+	return artifact
