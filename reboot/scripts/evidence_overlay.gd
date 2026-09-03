@@ -1,4 +1,3 @@
-class_name EvidenceOverlay
 extends CanvasLayer
 
 const FIRST_HOUR_NOTES := ["tethys_1", "tethys_2"]
