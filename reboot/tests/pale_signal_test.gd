@@ -8,6 +8,9 @@ func _init() -> void:
 	_assert(source.contains("fragment_count()"), "Pale Signal escalation must read earned fragment evidence")
 	_assert(source.contains("_nearest_unresolved_fragment"), "Pale Signal must stay anchored to physical unresolved evidence sites")
 	_assert(source.contains("pulse_rate()"), "Pale Signal must escalate the same phenomenon rather than substitute a new mechanic")
+	_assert(source.contains("_receiver_vanes"), "Pale Signal hero presentation must retain its custom receiver-vane silhouette")
+	_assert(source.contains("SignalSpine"), "Pale Signal hero presentation must retain its asymmetric central spine")
+	_assert(source.contains("BoxMesh.new()"), "Pale Signal identity must include authored procedural geometry beyond stock field rings")
 	for forbidden_mutator in [
 		"collect_fragment(",
 		"collect_resource(",
