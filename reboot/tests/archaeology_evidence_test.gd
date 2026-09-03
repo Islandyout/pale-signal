@@ -50,6 +50,15 @@ func _init() -> void:
 			push_error("hero archaeology presentation lost authored marker: %s" % authored_marker)
 			quit(1)
 			return
+	var overlay_source := FileAccess.get_file_as_string("res://scripts/evidence_overlay.gd")
+	if not overlay_source.contains("_campaign_instance_id"):
+		push_error("evidence overlay must track campaign identity across scene/save transitions")
+		quit(1)
+		return
+	if not overlay_source.contains("_campaign_instance_id != campaign_id") or not overlay_source.contains("_seen_notes.clear()"):
+		push_error("evidence overlay must reseed seen evidence instead of replaying loaded notes as new discoveries")
+		quit(1)
+		return
 	archaeology.free()
 	print("ARCHAEOLOGY EVIDENCE TEST: PASS")
 	quit(0)
