@@ -1,10 +1,14 @@
 class_name TalariInstructor
 extends Node
 
+signal attention_state_changed(state: String)
+
 # Presentation-only authored NPC routine for the first-hour Talari instructor.
 # The routine never owns progression, collision, tutorial completion, or player input.
 
 @export var attention_range := 9.0
+@export var engagement_range := 4.4
+@export var personal_space_radius := 2.15
 @export var patrol_radius := 1.65
 @export var patrol_speed := 0.42
 @export var turn_speed := 2.6
@@ -12,6 +16,7 @@ extends Node
 var body: Node3D
 var observer: Node3D
 var origin := Vector3.ZERO
+var attention_state := "PATROL"
 var _phase := 0.0
 var _initialized := false
 
@@ -28,11 +33,36 @@ func _process(delta: float) -> void:
 		return
 	_phase += delta * patrol_speed
 	var planar_distance := Vector2(body.global_position.x - observer.global_position.x, body.global_position.z - observer.global_position.z).length()
-	if planar_distance <= attention_range:
-		_face_observer(delta)
-		body.position = body.position.lerp(origin, clampf(delta * 2.0, 0.0, 1.0))
-	else:
-		_patrol(delta)
+	var state := attention_state_for_distance(planar_distance)
+	_set_attention_state(state)
+	match state:
+		"PERSONAL_SPACE":
+			_face_observer(delta)
+			_yield_personal_space(delta)
+		"ENGAGED":
+			_face_observer(delta)
+			body.position = body.position.lerp(origin, clampf(delta * 2.0, 0.0, 1.0))
+		"OBSERVING":
+			_face_observer(delta)
+			body.position = body.position.lerp(origin, clampf(delta * 1.2, 0.0, 1.0))
+		_:
+			_patrol(delta)
+	_update_sensory_read(delta)
+
+func attention_state_for_distance(distance: float) -> String:
+	if distance <= personal_space_radius:
+		return "PERSONAL_SPACE"
+	if distance <= engagement_range:
+		return "ENGAGED"
+	if distance <= attention_range:
+		return "OBSERVING"
+	return "PATROL"
+
+func _set_attention_state(value: String) -> void:
+	if attention_state == value:
+		return
+	attention_state = value
+	attention_state_changed.emit(value)
 
 func _face_observer(delta: float) -> void:
 	var offset := observer.global_position - body.global_position
@@ -42,6 +72,20 @@ func _face_observer(delta: float) -> void:
 	var target_yaw := atan2(-offset.x, -offset.z)
 	body.rotation.y = lerp_angle(body.rotation.y, target_yaw, clampf(delta * turn_speed, 0.0, 1.0))
 
+func _yield_personal_space(delta: float) -> void:
+	# Talari acknowledge the player without behaving like a static quest marker.
+	# If crowded, the instructor yields a small bounded step while maintaining
+	# eye/sensory orientation. This is presentation only and cannot move the NPC
+	# outside its authored survey station or advance any mechanic.
+	var away := body.global_position - observer.global_position
+	away.y = 0.0
+	if away.length_squared() < 0.0001:
+		away = Vector3.RIGHT
+	else:
+		away = away.normalized()
+	var local_target := origin + away * minf(patrol_radius, 0.75)
+	body.position = body.position.lerp(local_target, clampf(delta * 1.75, 0.0, 1.0))
+
 func _patrol(delta: float) -> void:
 	var offset := Vector3(cos(_phase) * patrol_radius, 0.0, sin(_phase * 0.72) * patrol_radius * 0.55)
 	var target := origin + offset
@@ -50,6 +94,29 @@ func _patrol(delta: float) -> void:
 		var target_yaw := atan2(-motion.x, -motion.z)
 		body.rotation.y = lerp_angle(body.rotation.y, target_yaw, clampf(delta * turn_speed * 0.65, 0.0, 1.0))
 	body.position = body.position.lerp(target, clampf(delta * 0.8, 0.0, 1.0))
+
+func _update_sensory_read(_delta: float) -> void:
+	# A restrained throat-resonator pulse communicates attention state at a glance
+	# without adding HUD, dialogue, quest, or interaction subsystems.
+	if not is_instance_valid(body):
+		return
+	var resonator := body.get_node_or_null("TalariFaceIdentity/ThroatResonator") as MeshInstance3D
+	if resonator == null:
+		return
+	var amplitude := 0.012
+	var rate := 1.8
+	match attention_state:
+		"PERSONAL_SPACE":
+			amplitude = 0.055
+			rate = 5.0
+		"ENGAGED":
+			amplitude = 0.040
+			rate = 3.6
+		"OBSERVING":
+			amplitude = 0.025
+			rate = 2.5
+	var pulse := 1.0 + sin(_phase * rate) * amplitude
+	resonator.scale = Vector3(pulse, pulse, pulse)
 
 func _install_authored_face_identity() -> void:
 	# The imported Quaternius humanoid remains an animation/scale source only.
