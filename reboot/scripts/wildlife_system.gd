@@ -10,6 +10,9 @@ const HERD_ALERT_RADIUS := 14.0
 const HERD_ALERT_GAIN := 0.82
 const GRAZER_SPEED := 0.85
 const TETHYS_BOUNDS := 46.0
+const GRAZE_CYCLE_RATE := 0.12
+const GRAZE_FRACTION := 0.42
+const FLEE_THRESHOLD := 0.15
 
 var _grazers: Array[Dictionary] = []
 var _time := 0.0
@@ -175,6 +178,16 @@ func alert_level_for_neighbor(distance: float, neighbor_fear: float) -> float:
 		return 0.0
 	return clampf(neighbor_fear * (1.0 - distance / HERD_ALERT_RADIUS) * HERD_ALERT_GAIN, 0.0, 1.0)
 
+func activity_for_state(fear: float, time_value: float, phase: float) -> String:
+	# Calm Flat Grazers should look like animals with a feeding rhythm rather than
+	# constantly orbiting invisible waypoints. Fear always interrupts grazing.
+	if fear >= FLEE_THRESHOLD:
+		return "FLEE"
+	var cycle := fposmod(time_value * GRAZE_CYCLE_RATE + phase * 0.17, 1.0)
+	if cycle < GRAZE_FRACTION:
+		return "GRAZE"
+	return "BROWSE"
+
 func _neighbor_alert(index: int, position: Vector3) -> float:
 	var alert := 0.0
 	for other_index in range(_grazers.size()):
@@ -204,10 +217,11 @@ func _update_grazer(index: int, delta: float, player_position: Vector3) -> void:
 	else:
 		fear = maxf(fear, _neighbor_alert(index, grazer.global_position))
 
+	var activity := activity_for_state(fear, _time, phase)
 	var desired := Vector3.ZERO
-	if fear > 0.01 and to_player.length_squared() > 0.01:
+	if activity == "FLEE" and to_player.length_squared() > 0.01:
 		desired = to_player.normalized()
-	else:
+	elif activity == "BROWSE":
 		var target := home + Vector3(
 			sin(_time * 0.17 + phase) * 7.0,
 			0.0,
@@ -225,7 +239,55 @@ func _update_grazer(index: int, delta: float, player_position: Vector3) -> void:
 	grazer.position.y = 0.55
 	if desired.length_squared() > 0.01:
 		grazer.rotation.y = lerp_angle(grazer.rotation.y, atan2(desired.x, desired.z), minf(1.0, delta * 2.6))
-	# Small body motion communicates grazing/alert state without an animation asset.
-	grazer.scale.y = 1.0 + sin(_time * 2.2 + phase) * (0.018 + fear * 0.028)
+
+	_animate_flat_grazer(grazer, activity, fear, phase, desired.length_squared() > 0.01)
 	state["fear"] = fear
 	_grazers[index] = state
+
+func _animate_flat_grazer(grazer: Node3D, activity: String, fear: float, phase: float, moving: bool) -> void:
+	# Identity animation is procedural and deliberately local to the wildlife visual:
+	# feeding works the rake, threat raises the sensory sail, and the six stilts show
+	# a light alternating cadence. No animation state can advance scan/tutorial data.
+	var visual := grazer.get_node_or_null("Visual") as Node3D
+	if visual == null:
+		return
+
+	var body_breath := 0.010
+	if activity == "GRAZE":
+		body_breath = 0.018
+	elif activity == "FLEE":
+		body_breath = 0.034
+	grazer.scale.y = 1.0 + sin(_time * (2.0 if activity == "GRAZE" else 3.2) + phase) * body_breath
+
+	var sail := visual.get_node_or_null("LateralSensorySail") as Node3D
+	if sail != null:
+		var alert_raise := lerpf(0.0, 30.0, fear)
+		sail.rotation_degrees = Vector3(-18.0 + alert_raise, 0.0, -8.0)
+
+	var rake_pitch := 13.0
+	if activity == "GRAZE":
+		rake_pitch += 18.0 + sin(_time * 3.1 + phase) * 7.0
+	elif activity == "FLEE":
+		rake_pitch -= 8.0
+	for tooth_index in range(3):
+		var rake := visual.get_node_or_null("GrazingRake%02d" % (tooth_index + 1)) as Node3D
+		if rake != null:
+			rake.rotation_degrees.x = rake_pitch
+
+	var cadence := 0.0
+	if moving:
+		cadence = 9.0 + fear * 10.0
+	for leg_index in range(6):
+		var leg := visual.get_node_or_null("StiltLeg%02d" % (leg_index + 1)) as Node3D
+		if leg == null:
+			continue
+		var column := leg_index / 2
+		var base_roll := -6.0 + float(column) * 6.0
+		var alternating := sin(_time * (5.0 + fear * 5.5) + phase + float(leg_index % 2) * PI) * cadence
+		leg.rotation_degrees.z = base_roll + alternating
+
+	for sensor_name in ["FieldSensorL", "FieldSensorR"]:
+		var sensor := visual.get_node_or_null(sensor_name) as Node3D
+		if sensor != null:
+			var sensor_pulse := 1.0 + sin(_time * (2.2 + fear * 3.0) + phase) * (0.025 + fear * 0.05)
+			sensor.scale = Vector3.ONE * sensor_pulse
