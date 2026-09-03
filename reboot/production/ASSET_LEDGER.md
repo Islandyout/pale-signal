@@ -28,10 +28,11 @@ During mechanic development, procedural fallback meshes keep the game playable w
 
 ## Identity transformation record
 
+- The expedition hero ship now uses the audited Kenney source only as a base. `HeroShipArt` adds an offset dorsal science spine, asymmetric sensor boom, four physically legible VTOL housings, belly science pallet, restrained survey index lights, and unequal rear field vanes. The presentation layer is isolated beneath the existing `ShipController`, so collision, camera, thrust, save, and tutorial contracts are unchanged. These authored components are generated in-project and add no third-party license obligation.
 - The Talari civilian GLB is an animation/scale source, not the final Talari presentation. `WorldArt._decorate_talari()` adds the authored cranial sensory fan, asymmetric survey mantle, restrained luminous survey bars, and field transceiver around the imported base. These elements are generated in-project and therefore do not add a third-party license obligation.
 - The Flat Grazer fallback now establishes the authored species morphology rather than a stock quadruped placeholder: a low browsing disk, overlapping dorsal plates, offset sensory sail, three-tooth grazing rake, six short stilt legs, and restrained paired field sensors. These elements are generated in-project and therefore add no third-party license obligation. A future verified `flat_grazer.glb` may replace or augment source geometry, but it must preserve this substantially transformed identity rather than becoming the final presentation unchanged.
 - The Tethys tutorial foundation is now a custom in-project hero archaeology presentation layered over the unchanged interaction/collision anchor. `WorldArt.decorate_training_foundation()` adds asymmetric load ribs, paired restraint shoes, interrupted evidence traces, and a survey datum so the two reconstruction evidence layers have a readable physical basis instead of presenting as a generic box. These elements are generated in-project and add no third-party license obligation.
-- The hero ship, Pale Signal artifacts, Kestra hero archaeology, and final Talari body/face treatment remain subject to the same rule: source assets may accelerate production, but their final presentation must be custom or substantially transformed.
+- Pale Signal artifacts, Kestra hero archaeology, and final Talari body/face treatment remain subject to the same rule: source assets may accelerate production, but their final presentation must be custom or substantially transformed.
 
 ## Source pages
 
