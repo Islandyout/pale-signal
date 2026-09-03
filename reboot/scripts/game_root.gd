@@ -135,6 +135,7 @@ func _build_world() -> void:
 		var b := BoxMesh.new()
 		b.size = Vector3(4.2, 0.55, 2.1)
 		ruin_mesh.mesh = b
+	WorldArt.decorate_training_foundation(ruin)
 
 	scanner = ScannerSystem.new()
 	add_child(scanner)
