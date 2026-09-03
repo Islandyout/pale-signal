@@ -7,7 +7,7 @@ signal reconstruction_complete
 
 @export var alignment_speed := 0.28
 @export var lock_tolerance := 0.065
-@export var required_passes := 2
+@export var required_passes := 3
 
 var active := false
 var alignment := 0.0
@@ -61,10 +61,16 @@ func tick(delta: float) -> void:
 
 func _advance_pass() -> void:
 	pass_index += 1
-	# The second pass asks the player to correlate a different evidence layer
-	# instead of confirming the same solved alignment twice.
-	alignment = 0.82 if target_alignment < 0.5 else 0.18
-	target_alignment = clampf(1.0 - target_alignment, 0.18, 0.82)
+	# Each evidence pass asks for a materially different correlation instead of
+	# repeating one solved alignment. The third pass is intentionally asymmetric:
+	# it reads alteration chronology, making the player test whether the restraint
+	# traces were original construction or a later intervention.
+	if pass_index == 1:
+		alignment = 0.82 if target_alignment < 0.5 else 0.18
+		target_alignment = clampf(1.0 - target_alignment, 0.18, 0.82)
+	else:
+		alignment = 0.78 if target_alignment < 0.5 else 0.22
+		target_alignment = 0.31 if target_alignment > 0.5 else 0.72
 	reconstruction_progress.emit(float(pass_index) / float(maxi(required_passes, 1)))
 	_emit_state(false)
 
@@ -87,12 +93,16 @@ func _set_eva_movement(value: bool) -> void:
 	get_tree().call_group("eva_controller", "set_movement_enabled", value)
 
 func evidence_layer_name() -> String:
-	# Reconstruction is evidence work, not a generic two-step lock puzzle. The
-	# first pass reads how the structure carried force; the second reads whether
-	# its aligned geometry was restrained or deliberately held in posture.
-	if pass_index <= 0:
-		return "LOAD PATH"
-	return "RESTRAINT TRACE"
+	# Reconstruction is evidence work, not a generic lock puzzle. The layers move
+	# from structural fact, to restraint evidence, to chronology. That final pass
+	# is what lets the scene challenge the simple "storm damage" explanation.
+	match pass_index:
+		0:
+			return "LOAD PATH"
+		1:
+			return "RESTRAINT TRACE"
+		_:
+			return "ALTERATION SEQUENCE"
 
 func _stage_name(lock_ready: bool) -> String:
 	if not evidence_scanned:
