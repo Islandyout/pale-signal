@@ -8,6 +8,7 @@ var _title: Label
 var _detail: Label
 var _seen_notes: Dictionary = {}
 var _campaign_ready := false
+var _campaign_instance_id := 0
 var _hide_timer := 0.0
 
 func _ready() -> void:
@@ -58,12 +59,15 @@ func _poll_campaign_evidence() -> void:
 	if scene == null:
 		return
 	var campaign = scene.get("campaign")
-	if campaign == null:
+	if campaign == null or not (campaign is Object):
 		return
 	var notes = campaign.get("evidence_notes")
 	if not (notes is Dictionary):
 		return
-	if not _campaign_ready:
+	var campaign_id := campaign.get_instance_id()
+	if not _campaign_ready or _campaign_instance_id != campaign_id:
+		_campaign_instance_id = campaign_id
+		_seen_notes.clear()
 		for note_id in FIRST_HOUR_NOTES:
 			if notes.has(note_id):
 				_seen_notes[note_id] = true
