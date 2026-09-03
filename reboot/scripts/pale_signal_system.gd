@@ -15,6 +15,8 @@ var _ship: ShipController
 var _phenomenon_root: Node3D
 var _pulse_light: OmniLight3D
 var _rings: Array[MeshInstance3D] = []
+var _receiver_vanes: Array[MeshInstance3D] = []
+var _signal_spine: MeshInstance3D
 var _phase := 0.0
 
 func _ready() -> void:
@@ -33,6 +35,16 @@ func _bind_world() -> void:
 	if _phenomenon_root == null or not is_instance_valid(_phenomenon_root):
 		_install_visuals()
 
+func _signal_material(albedo: Color, emission: Color, alpha: float) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.albedo_color = albedo
+	material.emission_enabled = true
+	material.emission = emission
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color.a = alpha
+	return material
+
 func _install_visuals() -> void:
 	var scene := get_tree().current_scene
 	if scene == null:
@@ -48,6 +60,9 @@ func _install_visuals() -> void:
 	_pulse_light.shadow_enabled = false
 	_phenomenon_root.add_child(_pulse_light)
 
+	# The rings describe the receiver field, but they are deliberately not the
+	# hero silhouette. The asymmetric spine/vanes below give the Pale Signal a
+	# recognizable physical grammar that is ours rather than a stock torus icon.
 	for i in range(3):
 		var ring := MeshInstance3D.new()
 		var torus := TorusMesh.new()
@@ -55,18 +70,40 @@ func _install_visuals() -> void:
 		torus.outer_radius = torus.inner_radius + 0.045
 		torus.rings = 24
 		torus.ring_segments = 10
-		var material := StandardMaterial3D.new()
-		material.albedo_color = Color("#a7f4f7")
-		material.emission_enabled = true
-		material.emission = Color("#69dce7") * (1.45 - float(i) * 0.16)
-		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		material.albedo_color.a = 0.34 - float(i) * 0.06
-		torus.material = material
+		torus.material = _signal_material(
+			Color("#a7f4f7"),
+			Color("#69dce7") * (1.45 - float(i) * 0.16),
+			0.34 - float(i) * 0.06
+		)
 		ring.mesh = torus
 		ring.rotation_degrees.x = 90.0
 		_phenomenon_root.add_child(ring)
 		_rings.append(ring)
+
+	_signal_spine = MeshInstance3D.new()
+	_signal_spine.name = "SignalSpine"
+	var spine_mesh := BoxMesh.new()
+	spine_mesh.size = Vector3(0.16, 2.65, 0.16)
+	spine_mesh.material = _signal_material(Color("#d4ffff"), Color("#7de8ef") * 1.85, 0.82)
+	_signal_spine.mesh = spine_mesh
+	_signal_spine.position.y = 0.12
+	_signal_spine.rotation_degrees = Vector3(7.0, 0.0, -11.0)
+	_phenomenon_root.add_child(_signal_spine)
+
+	for i in range(4):
+		var vane := MeshInstance3D.new()
+		vane.name = "ReceiverVane%d" % i
+		var vane_mesh := BoxMesh.new()
+		vane_mesh.size = Vector3(0.18, 1.05 + float(i % 2) * 0.22, 0.34)
+		vane_mesh.material = _signal_material(Color("#b9f8fa"), Color("#55cfdb") * 1.55, 0.62)
+		vane.mesh = vane_mesh
+		var angle := float(i) * TAU / 4.0 + 0.36
+		var radius := 0.98 + float(i % 2) * 0.14
+		vane.position = Vector3(cos(angle) * radius, -0.08 + float(i % 2) * 0.18, sin(angle) * radius)
+		vane.rotation.y = -angle
+		vane.rotation.z = deg_to_rad(31.0 if i % 2 == 0 else -24.0)
+		_phenomenon_root.add_child(vane)
+		_receiver_vanes.append(vane)
 
 func _process(delta: float) -> void:
 	if _campaign_world == null or not is_instance_valid(_campaign_world) or _phenomenon_root == null or not is_instance_valid(_phenomenon_root):
@@ -96,6 +133,19 @@ func _process(delta: float) -> void:
 		var scale_value := 0.72 + wave * (0.22 + escalation * 0.12)
 		ring.scale = Vector3.ONE * scale_value
 		ring.rotation.y += delta * (0.12 + float(i) * 0.05) * (1.0 + escalation * 0.4)
+
+	if _signal_spine != null and is_instance_valid(_signal_spine):
+		_signal_spine.rotation.y = sin(_phase * 0.38) * (0.16 + escalation * 0.08)
+		_signal_spine.scale.y = 0.92 + pulse * (0.08 + escalation * 0.05)
+
+	for i in range(_receiver_vanes.size()):
+		var vane := _receiver_vanes[i]
+		if vane == null or not is_instance_valid(vane):
+			continue
+		var vane_wave := sin(_phase - float(i) * 0.72)
+		vane.position.y = (-0.08 + float(i % 2) * 0.18) + vane_wave * (0.08 + escalation * 0.05)
+		vane.rotation.x = vane_wave * (0.07 + escalation * 0.035)
+		vane.scale = Vector3.ONE * (0.94 + (0.5 + 0.5 * vane_wave) * 0.08)
 
 func _active_actor() -> Node3D:
 	if _eva != null and is_instance_valid(_eva) and _eva.enabled:
