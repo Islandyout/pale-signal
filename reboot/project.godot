@@ -11,6 +11,7 @@ config/features=PackedStringArray("4.3", "GL Compatibility")
 PaleAudio="*res://scripts/audio_director.gd"
 HeroShipArt="*res://scripts/hero_ship_art.gd"
 EvidenceOverlay="*res://scripts/evidence_overlay.gd"
+PaleSignal="*res://scripts/pale_signal_system.gd"
 
 [display]
 window/size/viewport_width=1280
