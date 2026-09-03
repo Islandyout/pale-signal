@@ -46,6 +46,83 @@ static func install(root: Node3D, eva: EVAController) -> Dictionary:
 
 	return created
 
+static func decorate_training_foundation(ruin: Node3D) -> void:
+	# Hero archaeology must read as authored evidence rather than a primitive
+	# interaction marker. Everything here is presentation-only and is parented
+	# beneath the existing mechanic/collision anchor so reconstruction behavior,
+	# scan range, saves and tutorial completion remain untouched.
+	var language := Node3D.new()
+	language.name = "HeroArchaeologyLanguage"
+	ruin.add_child(language)
+
+	var stone := StandardMaterial3D.new()
+	stone.albedo_color = Color("#586568")
+	stone.metallic = 0.08
+	stone.roughness = 0.82
+
+	var ceramic := StandardMaterial3D.new()
+	ceramic.albedo_color = Color("#a7b0a6")
+	ceramic.metallic = 0.16
+	ceramic.roughness = 0.56
+
+	var trace := StandardMaterial3D.new()
+	trace.albedo_color = Color("#86c9bd")
+	trace.emission_enabled = true
+	trace.emission = Color("#447b73")
+	trace.emission_energy_multiplier = 1.15
+	trace.roughness = 0.34
+
+	# Three offset load ribs make the first reconstruction pass visible in-world:
+	# their unequal spans imply a structure that carried force asymmetrically.
+	for i in range(3):
+		var rib := MeshInstance3D.new()
+		rib.name = "LoadRib%d" % i
+		var rib_mesh := BoxMesh.new()
+		rib_mesh.size = Vector3(0.24, 0.42 + float(i) * 0.08, 2.65 - float(i) * 0.34)
+		rib_mesh.material = stone
+		rib.mesh = rib_mesh
+		rib.position = Vector3(-1.35 + float(i) * 1.25, 0.34 + float(i) * 0.05, -0.12 + float(i) * 0.16)
+		rib.rotation_degrees = Vector3(0.0, -9.0 + float(i) * 7.0, -4.0 + float(i) * 3.0)
+		language.add_child(rib)
+
+	# Paired restraint shoes oppose the ribs instead of forming a symmetric ruin.
+	# This gives the second evidence layer a distinct silhouette before HUD text.
+	for side in [-1.0, 1.0]:
+		var shoe := MeshInstance3D.new()
+		shoe.name = "RestraintShoeL" if side < 0.0 else "RestraintShoeR"
+		var shoe_mesh := BoxMesh.new()
+		shoe_mesh.size = Vector3(0.72, 0.20, 0.92)
+		shoe_mesh.material = ceramic
+		shoe.mesh = shoe_mesh
+		shoe.position = Vector3(1.62 * side, 0.29, 0.44 * side)
+		shoe.rotation_degrees.y = 18.0 * side
+		language.add_child(shoe)
+
+	# Interrupted luminous traces suggest measured alignment without turning the
+	# archaeological site into a neon objective marker or a new gameplay system.
+	for i in range(4):
+		var inlay := MeshInstance3D.new()
+		inlay.name = "EvidenceTrace%d" % i
+		var inlay_mesh := BoxMesh.new()
+		inlay_mesh.size = Vector3(0.46 + float(i % 2) * 0.18, 0.035, 0.055)
+		inlay_mesh.material = trace
+		inlay.mesh = inlay_mesh
+		inlay.position = Vector3(-1.02 + float(i) * 0.66, 0.59, -0.66 + float(i % 2) * 0.22)
+		inlay.rotation_degrees.y = -12.0 + float(i) * 6.5
+		language.add_child(inlay)
+
+	var datum := MeshInstance3D.new()
+	datum.name = "SurveyDatum"
+	var datum_mesh := CylinderMesh.new()
+	datum_mesh.top_radius = 0.09
+	datum_mesh.bottom_radius = 0.12
+	datum_mesh.height = 0.78
+	datum_mesh.material = ceramic
+	datum.mesh = datum_mesh
+	datum.position = Vector3(0.72, 0.56, 0.82)
+	datum.rotation_degrees.z = 7.0
+	language.add_child(datum)
+
 static func set_eva_cinematic_visible(visual: Node3D, value: bool) -> void:
 	if is_instance_valid(visual):
 		visual.visible = value
