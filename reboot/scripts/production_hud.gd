@@ -307,8 +307,9 @@ func _update_campaign_summary() -> void:
 		location = "DEEP SPACE"
 	var evidence_text := ""
 	if campaign.evidence_count() > 0:
-		evidence_text = "  ·  EVIDENCE %d" % campaign.evidence_count()
-	campaign_label.text = "%s  ·  SIGNAL %d/7  ·  ROUTE %s%s" % [location.to_upper(), campaign.fragment_count(), campaign.selected_world.to_upper(), evidence_text]
+		evidence_text = "  ·  NOTES %d" % campaign.evidence_count()
+	var slice_fragments := mini(campaign.fragment_count(), 2)
+	campaign_label.text = "%s  ·  FIRST-HOUR EVIDENCE %d/2  ·  ROUTE %s%s" % [location.to_upper(), slice_fragments, campaign.selected_world.to_upper(), evidence_text]
 	var mode := str(root.get("mode"))
 	ship_status_label.visible = mode == "ship"
 	if ship_status_label.visible:
