@@ -50,6 +50,11 @@ func _init() -> void:
 	_assert(source.contains("\"scan\",\"interact\",\"tutorial_reset\""), "mobile recovery control must be available in EVA mode")
 	_assert(source.contains("_tap_action(\"cutscene_skip\")"), "mobile cinematic skip parity must remain intact")
 
+	var tutorial_source := FileAccess.get_file_as_string("res://scripts/tutorial_director.gd")
+	_assert(tutorial_source.contains("Shift the evidence left/right"), "archaeology lesson must describe the shared alignment mechanic without requiring keyboard keys")
+	_assert(tutorial_source.contains("then USE. RESET restarts this step"), "archaeology lesson must use labels present on the touch control layer")
+	_assert(not tutorial_source.contains("F3 or touch RESET"), "shared tutorial copy must not present keyboard-first recovery instructions to touch players")
+
 	controls.free()
 	if failures == 0:
 		print("PALE SIGNAL MOBILE CONTROLS TEST: PASS")
