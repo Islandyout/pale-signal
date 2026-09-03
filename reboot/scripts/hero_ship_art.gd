@@ -30,12 +30,12 @@ func _install() -> void:
 	ceramic.metallic = 0.22
 	ceramic.roughness = 0.48
 
-	var signal := StandardMaterial3D.new()
-	signal.albedo_color = Color("#77bdb2")
-	signal.emission_enabled = true
-	signal.emission = Color("#356f68")
-	signal.emission_energy_multiplier = 1.05
-	signal.roughness = 0.28
+	var signal_material := StandardMaterial3D.new()
+	signal_material.albedo_color = Color("#77bdb2")
+	signal_material.emission_enabled = true
+	signal_material.emission = Color("#356f68")
+	signal_material.emission_energy_multiplier = 1.05
+	signal_material.roughness = 0.28
 
 	# Offset dorsal instrument spine: the ship reads as a field-science vessel,
 	# not a symmetric fighter, and preserves a recognizable silhouette in orbit.
@@ -50,13 +50,13 @@ func _install() -> void:
 			var side_name := "L" if x < 0.0 else "R"
 			var fore_name := "F" if z < 0.0 else "A"
 			_add_cylinder(identity, "VTOL%s%s" % [side_name, fore_name], 0.24, 0.38, Vector3(x, -0.36, z), hull)
-			_add_box(identity, "LiftMark%s%s" % [side_name, fore_name], Vector3(0.24, 0.025, 0.07), Vector3(x, -0.565, z), Vector3.ZERO, signal)
+			_add_box(identity, "LiftMark%s%s" % [side_name, fore_name], Vector3(0.24, 0.025, 0.07), Vector3(x, -0.565, z), Vector3.ZERO, signal_material)
 
 	# Asymmetric belly science pallet and restrained luminous index bars carry the
 	# same survey language used by Talari field equipment without copying it.
 	_add_box(identity, "SciencePallet", Vector3(1.28, 0.18, 0.82), Vector3(-0.30, -0.54, 0.18), Vector3(0.0, 8.0, 0.0), ceramic)
 	for i in range(3):
-		_add_box(identity, "SignalIndex%d" % i, Vector3(0.055, 0.05, 0.42 + float(i) * 0.13), Vector3(0.52 + float(i) * 0.13, 0.52, 0.78 - float(i) * 0.16), Vector3(0.0, -9.0 + float(i) * 5.0, 0.0), signal)
+		_add_box(identity, "SignalIndex%d" % i, Vector3(0.055, 0.05, 0.42 + float(i) * 0.13), Vector3(0.52 + float(i) * 0.13, 0.52, 0.78 - float(i) * 0.16), Vector3(0.0, -9.0 + float(i) * 5.0, 0.0), signal_material)
 
 	# Rear field vanes break the stock source outline and give the craft a clear
 	# nose/tail read during manual approach and landing.
