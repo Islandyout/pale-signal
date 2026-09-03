@@ -9,6 +9,7 @@ config/features=PackedStringArray("4.3", "GL Compatibility")
 
 [autoload]
 PaleAudio="*res://scripts/audio_director.gd"
+HeroShipArt="*res://scripts/hero_ship_art.gd"
 
 [display]
 window/size/viewport_width=1280
