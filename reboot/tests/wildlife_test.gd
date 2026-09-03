@@ -14,6 +14,10 @@ func _init() -> void:
 	_assert(is_zero_approx(outside_alert), "alert must not propagate beyond the local herd radius")
 	_assert(is_zero_approx(calm_alert), "calm neighbors must not fabricate disturbance")
 
+	_assert(wildlife.activity_for_state(0.0, 0.0, 0.0) == "GRAZE", "calm Flat Grazers must enter a stationary feeding beat")
+	_assert(wildlife.activity_for_state(0.0, 5.0, 0.0) == "BROWSE", "calm Flat Grazers must alternate from feeding into browsing movement")
+	_assert(wildlife.activity_for_state(WildlifeSystem.FLEE_THRESHOLD, 0.0, 0.0) == "FLEE", "fear must interrupt the feeding cycle immediately")
+
 	var identity := wildlife._make_flat_grazer_fallback(0)
 	_assert(identity.name == "FlatGrazerIdentity", "Flat Grazer fallback must retain its authored species identity root")
 	_assert(identity.get_node_or_null("BrowsingDisk") != null, "Flat Grazer must retain its low browsing-disk silhouette")
