@@ -61,10 +61,11 @@ func _poll_campaign_evidence() -> void:
 	var campaign = scene.get("campaign")
 	if campaign == null or not (campaign is Object):
 		return
-	var notes = campaign.get("evidence_notes")
+	var campaign_object := campaign as Object
+	var notes = campaign_object.get("evidence_notes")
 	if not (notes is Dictionary):
 		return
-	var campaign_id := campaign.get_instance_id()
+	var campaign_id: int = campaign_object.get_instance_id()
 	if not _campaign_ready or _campaign_instance_id != campaign_id:
 		_campaign_instance_id = campaign_id
 		_seen_notes.clear()
