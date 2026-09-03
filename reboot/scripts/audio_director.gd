@@ -7,15 +7,18 @@ extends Node
 
 const MIX_RATE := 11025.0
 const BUFFER_LENGTH := 0.35
+const SIGNAL_AUDIBLE_RANGE := 96.0
 
 var _ambient_player: AudioStreamPlayer
 var _engine_player: AudioStreamPlayer
 var _sensor_player: AudioStreamPlayer
 var _reconstruction_player: AudioStreamPlayer
+var _signal_player: AudioStreamPlayer
 var _ambient_playback: AudioStreamGeneratorPlayback
 var _engine_playback: AudioStreamGeneratorPlayback
 var _sensor_playback: AudioStreamGeneratorPlayback
 var _reconstruction_playback: AudioStreamGeneratorPlayback
+var _signal_playback: AudioStreamGeneratorPlayback
 var _ambient_phase_a := 0.0
 var _ambient_phase_b := 0.0
 var _engine_phase := 0.0
@@ -23,18 +26,23 @@ var _sensor_phase := 0.0
 var _sensor_mod_phase := 0.0
 var _reconstruction_phase := 0.0
 var _reconstruction_mod_phase := 0.0
+var _signal_phase_a := 0.0
+var _signal_phase_b := 0.0
+var _signal_pulse_phase := 0.0
 var _reconstruction_error := 1.0
 var _reconstruction_active := false
 var _reconstruction_lock_ready := false
 var _ship: ShipController
 var _eva: EVAController
 var _archaeology: ArchaeologySystem
+var _campaign_world: CampaignWorld
 
 func _ready() -> void:
 	_ambient_player = _make_generator_player("AmbientBed", -24.0)
 	_engine_player = _make_generator_player("ShipEngine", -18.0)
 	_sensor_player = _make_generator_player("FieldScanner", -20.0)
 	_reconstruction_player = _make_generator_player("ReconstructionGuide", -18.0)
+	_signal_player = _make_generator_player("PaleSignalMotif", -17.0)
 	call_deferred("_bind_world")
 
 func _make_generator_player(node_name: String, volume_db: float) -> AudioStreamPlayer:
@@ -52,6 +60,7 @@ func _make_generator_player(node_name: String, volume_db: float) -> AudioStreamP
 		"ShipEngine": _engine_playback = player.get_stream_playback() as AudioStreamGeneratorPlayback
 		"FieldScanner": _sensor_playback = player.get_stream_playback() as AudioStreamGeneratorPlayback
 		"ReconstructionGuide": _reconstruction_playback = player.get_stream_playback() as AudioStreamGeneratorPlayback
+		"PaleSignalMotif": _signal_playback = player.get_stream_playback() as AudioStreamGeneratorPlayback
 	return player
 
 func _bind_world() -> void:
@@ -61,6 +70,9 @@ func _bind_world() -> void:
 	var eva_candidate := get_tree().root.find_child("EVA", true, false)
 	if eva_candidate is EVAController:
 		_eva = eva_candidate as EVAController
+	var world_candidate := get_tree().root.find_child("CampaignWorld", true, false)
+	if world_candidate is CampaignWorld:
+		_campaign_world = world_candidate as CampaignWorld
 	if _archaeology == null or not is_instance_valid(_archaeology):
 		_archaeology = _find_archaeology(get_tree().root)
 		if _archaeology != null:
@@ -89,12 +101,13 @@ func _on_reconstruction_state(stage: String, alignment: float, target: float, lo
 		_reconstruction_lock_ready = false
 
 func _process(_delta: float) -> void:
-	if _ship == null or not is_instance_valid(_ship) or _eva == null or not is_instance_valid(_eva) or _archaeology == null or not is_instance_valid(_archaeology):
+	if _ship == null or not is_instance_valid(_ship) or _eva == null or not is_instance_valid(_eva) or _archaeology == null or not is_instance_valid(_archaeology) or _campaign_world == null or not is_instance_valid(_campaign_world):
 		_bind_world()
 	_fill_ambient()
 	_fill_engine()
 	_fill_sensor()
 	_fill_reconstruction()
+	_fill_signal()
 
 func _fill_ambient() -> void:
 	if _ambient_playback == null: return
@@ -166,3 +179,56 @@ func _fill_reconstruction() -> void:
 		_reconstruction_playback.push_frame(Vector2(sample * 0.96, sample))
 		_reconstruction_phase = fposmod(_reconstruction_phase + carrier_step, 1.0)
 		_reconstruction_mod_phase = fposmod(_reconstruction_mod_phase + mod_step, 1.0)
+
+func _signal_proximity() -> float:
+	# The motif is diegetic guidance, not a waypoint: only unresolved fragment
+	# anchors influence it, and the game remains fully playable with audio muted.
+	if _campaign_world == null or not is_instance_valid(_campaign_world):
+		return 0.0
+	var actor: Node3D = null
+	if _eva != null and is_instance_valid(_eva) and _eva.enabled:
+		actor = _eva
+	elif _ship != null and is_instance_valid(_ship) and _ship.enabled:
+		actor = _ship
+	if actor == null:
+		return 0.0
+	var nearest := INF
+	for site_id in _campaign_world.sites:
+		if not str(site_id).begins_with("fragment|"):
+			continue
+		var site := _campaign_world.sites[site_id] as Interactable
+		if site == null or not is_instance_valid(site) or not site.visible or site.completed:
+			continue
+		nearest = minf(nearest, actor.global_position.distance_to(site.global_position))
+	if nearest == INF:
+		return 0.0
+	return clampf(1.0 - nearest / SIGNAL_AUDIBLE_RANGE, 0.0, 1.0)
+
+func _fill_signal() -> void:
+	if _signal_playback == null: return
+	var proximity := _signal_proximity()
+	var fragment_count := 0
+	if _campaign_world != null and is_instance_valid(_campaign_world) and _campaign_world.campaign != null:
+		fragment_count = _campaign_world.campaign.fragment_count()
+	# The second first-hour encounter evolves the same motif rather than replacing
+	# it: slightly faster pulses and a detuned second carrier imply the signal is
+	# becoming structured as contradictory evidence accumulates.
+	var escalation := clampf(float(fragment_count) / 2.0, 0.0, 1.0)
+	var carrier_a := 173.0 + escalation * 19.0
+	var carrier_b := 281.0 + escalation * 37.0
+	var pulse_rate := 0.72 + proximity * 1.9 + escalation * 0.55
+	var step_a := carrier_a / MIX_RATE
+	var step_b := carrier_b / MIX_RATE
+	var pulse_step := pulse_rate / MIX_RATE
+	var frames := _signal_playback.get_frames_available()
+	for _i in range(frames):
+		var pulse_wave := 0.5 + 0.5 * sin(_signal_pulse_phase * TAU)
+		var gate := pow(pulse_wave, 3.0)
+		var primary := sin(_signal_phase_a * TAU)
+		var secondary := sin(_signal_phase_b * TAU) * (0.30 + escalation * 0.16)
+		var intensity := proximity * proximity * (0.032 + escalation * 0.018)
+		var sample := (primary + secondary) * gate * intensity
+		_signal_playback.push_frame(Vector2(sample * 0.91, sample))
+		_signal_phase_a = fposmod(_signal_phase_a + step_a, 1.0)
+		_signal_phase_b = fposmod(_signal_phase_b + step_b, 1.0)
+		_signal_pulse_phase = fposmod(_signal_pulse_phase + pulse_step, 1.0)
