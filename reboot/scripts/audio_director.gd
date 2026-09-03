@@ -14,11 +14,13 @@ var _engine_player: AudioStreamPlayer
 var _sensor_player: AudioStreamPlayer
 var _reconstruction_player: AudioStreamPlayer
 var _signal_player: AudioStreamPlayer
+var _footstep_player: AudioStreamPlayer
 var _ambient_playback: AudioStreamGeneratorPlayback
 var _engine_playback: AudioStreamGeneratorPlayback
 var _sensor_playback: AudioStreamGeneratorPlayback
 var _reconstruction_playback: AudioStreamGeneratorPlayback
 var _signal_playback: AudioStreamGeneratorPlayback
+var _footstep_playback: AudioStreamGeneratorPlayback
 var _ambient_phase_a := 0.0
 var _ambient_phase_b := 0.0
 var _engine_phase := 0.0
@@ -29,6 +31,8 @@ var _reconstruction_mod_phase := 0.0
 var _signal_phase_a := 0.0
 var _signal_phase_b := 0.0
 var _signal_pulse_phase := 0.0
+var _footstep_phase := 0.0
+var _footstep_stride_phase := 0.0
 var _reconstruction_error := 1.0
 var _reconstruction_active := false
 var _reconstruction_lock_ready := false
@@ -43,6 +47,7 @@ func _ready() -> void:
 	_sensor_player = _make_generator_player("FieldScanner", -20.0)
 	_reconstruction_player = _make_generator_player("ReconstructionGuide", -18.0)
 	_signal_player = _make_generator_player("PaleSignalMotif", -17.0)
+	_footstep_player = _make_generator_player("EVAFootsteps", -15.0)
 	call_deferred("_bind_world")
 
 func _make_generator_player(node_name: String, volume_db: float) -> AudioStreamPlayer:
@@ -61,6 +66,7 @@ func _make_generator_player(node_name: String, volume_db: float) -> AudioStreamP
 		"FieldScanner": _sensor_playback = player.get_stream_playback() as AudioStreamGeneratorPlayback
 		"ReconstructionGuide": _reconstruction_playback = player.get_stream_playback() as AudioStreamGeneratorPlayback
 		"PaleSignalMotif": _signal_playback = player.get_stream_playback() as AudioStreamGeneratorPlayback
+		"EVAFootsteps": _footstep_playback = player.get_stream_playback() as AudioStreamGeneratorPlayback
 	return player
 
 func _bind_world() -> void:
@@ -108,6 +114,7 @@ func _process(_delta: float) -> void:
 	_fill_sensor()
 	_fill_reconstruction()
 	_fill_signal()
+	_fill_footsteps()
 
 func _fill_ambient() -> void:
 	if _ambient_playback == null: return
@@ -179,6 +186,32 @@ func _fill_reconstruction() -> void:
 		_reconstruction_playback.push_frame(Vector2(sample * 0.96, sample))
 		_reconstruction_phase = fposmod(_reconstruction_phase + carrier_step, 1.0)
 		_reconstruction_mod_phase = fposmod(_reconstruction_mod_phase + mod_step, 1.0)
+
+func _fill_footsteps() -> void:
+	if _footstep_playback == null: return
+	var speed := 0.0
+	var grounded := false
+	var active := false
+	if _eva != null and is_instance_valid(_eva):
+		speed = Vector2(_eva.velocity.x, _eva.velocity.z).length()
+		grounded = _eva.is_on_floor()
+		active = _eva.enabled and _eva.movement_enabled and grounded and speed > 0.35
+	var speed_ratio := clampf(speed / maxf(_eva.walk_speed if _eva != null and is_instance_valid(_eva) else 5.2, 0.1), 0.0, 1.0)
+	var stride_rate := lerpf(1.45, 2.25, speed_ratio)
+	var frames := _footstep_playback.get_frames_available()
+	var body_step := 118.0 / MIX_RATE
+	var stride_step := stride_rate / MIX_RATE
+	for _i in range(frames):
+		var stride_wave := 0.5 + 0.5 * sin(_footstep_stride_phase * TAU)
+		# A narrow envelope makes each contact read as a boot impact instead of a tone.
+		var impact := pow(stride_wave, 18.0) if active else 0.0
+		var body := sin(_footstep_phase * TAU)
+		var grit := sin(_footstep_phase * TAU * 2.73) * 0.22
+		var intensity := impact * (0.035 + speed_ratio * 0.035)
+		var sample := (body + grit) * intensity
+		_footstep_playback.push_frame(Vector2(sample, sample * 0.94))
+		_footstep_phase = fposmod(_footstep_phase + body_step, 1.0)
+		_footstep_stride_phase = fposmod(_footstep_stride_phase + stride_step, 1.0)
 
 func _signal_proximity() -> float:
 	# The motif is diegetic guidance, not a waypoint: only unresolved fragment
