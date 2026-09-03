@@ -29,6 +29,9 @@ func _init() -> void:
 	var kestra_source := FileAccess.get_file_as_string("res://scripts/kestra_environment.gd")
 	_assert(kestra_source.contains("instantiate_or_fallback(\"kestra\""), "Kestra hero site must use the audited imported module with a fallback")
 	_assert(kestra_source.contains("fragment|tethys_2"), "authored Kestra presentation must remain attached to the save-compatible archaeology interaction")
+	_assert(kestra_source.contains("HeroPaleArtifact"), "Kestra must replace the hidden generic fragment with a visible authored Pale Signal artifact")
+	_assert(kestra_source.contains("target.add_child(_build_pale_fragment_artifact())"), "authored fragment presentation must stay parented to the canonical interactable")
+	_assert(kestra_source.contains("visual.visible = false"), "generic fragment presentation must remain suppressed when the authored artifact is installed")
 	_test_talari_instructor_contract()
 	if failures == 0:
 		print("KESTRA PRODUCTION SCOPE TEST: PASS")
