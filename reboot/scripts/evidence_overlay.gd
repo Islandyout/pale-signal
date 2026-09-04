@@ -11,6 +11,7 @@ var _campaign_ready := false
 var _campaign_instance_id := 0
 var _archaeology_instance_id := 0
 var _hide_timer := 0.0
+var _pending_cards: Array[Dictionary] = []
 
 func _ready() -> void:
 	layer = 30
@@ -20,7 +21,7 @@ func _process(delta: float) -> void:
 	if _hide_timer > 0.0:
 		_hide_timer = maxf(0.0, _hide_timer - delta)
 		if _hide_timer <= 0.0:
-			_panel.visible = false
+			_show_next_card()
 	_poll_archaeology()
 	_poll_campaign_evidence()
 
@@ -72,10 +73,10 @@ func _poll_archaeology() -> void:
 		archaeology_object.connect("evidence_pass_locked", _on_archaeology_evidence_pass)
 
 func _on_archaeology_evidence_pass(layer_name: String, finding: String, pass_number: int, total_passes: int) -> void:
-	_title.text = "EVIDENCE %d / %d · %s" % [pass_number, total_passes, layer_name]
-	_detail.text = finding
-	_panel.visible = true
-	_hide_timer = DISPLAY_SECONDS
+	_queue_card(
+		"EVIDENCE %d / %d · %s" % [pass_number, total_passes, layer_name],
+		finding
+	)
 
 func _poll_campaign_evidence() -> void:
 	var scene := get_tree().current_scene
@@ -107,7 +108,29 @@ func _poll_campaign_evidence() -> void:
 		return
 
 func _show_note(note: Dictionary) -> void:
-	_title.text = "EVIDENCE CORRELATED · %s" % str(note.get("title", "FIELD NOTE")).to_upper()
-	_detail.text = str(note.get("detail", ""))
+	_queue_card(
+		"EVIDENCE CORRELATED · %s" % str(note.get("title", "FIELD NOTE")).to_upper(),
+		str(note.get("detail", ""))
+	)
+
+func _queue_card(title: String, detail: String) -> void:
+	# Archaeology can publish its final physical inference in the same completion
+	# sequence that campaign state adds a broader evidence note. Never let the
+	# later card overwrite a finding before the player has had time to read it.
+	var card := {"title": title, "detail": detail}
+	if _panel.visible and _hide_timer > 0.0:
+		_pending_cards.append(card)
+		return
+	_present_card(card)
+
+func _present_card(card: Dictionary) -> void:
+	_title.text = str(card.get("title", "EVIDENCE"))
+	_detail.text = str(card.get("detail", ""))
 	_panel.visible = true
 	_hide_timer = DISPLAY_SECONDS
+
+func _show_next_card() -> void:
+	if not _pending_cards.is_empty():
+		_present_card(_pending_cards.pop_front())
+		return
+	_panel.visible = false
