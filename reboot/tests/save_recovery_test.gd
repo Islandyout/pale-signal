@@ -37,7 +37,7 @@ func _init() -> void:
 	if not runtime_source.contains("ship.global_position = _array_to_vector3") or not runtime_source.contains("eva.global_position = _array_to_vector3"):
 		_fail("runtime restore must recover both ship and EVA physical position")
 		return
-	if not runtime_source.contains("ship.velocity = Vector3.ZERO if bool(runtime.get(\"ship_landed\"")"):
+	if not runtime_source.contains("ship.velocity = Vector3.ZERO if bool(runtime.get(\"ship_landed\""):
 		_fail("landed reloads must restart physically settled instead of replaying stale touchdown velocity")
 		return
 	if not project_source.contains("RuntimePersistence=\"*res://scripts/runtime_persistence.gd\""):
