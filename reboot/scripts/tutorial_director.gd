@@ -9,6 +9,7 @@ signal tutorial_completed
 signal request_intro_cutscene
 signal request_reveal_cutscene
 
+const TETHYS_TRAINING_BASIN_RADIUS := 95.0
 const LESSONS := [
 	{"id":"move", "title":"EVA MOVEMENT", "detail":"Move through the marked basin. Reach 8 m of real displacement."},
 	{"id":"look", "title":"CAMERA / BODY SEPARATION", "detail":"Look around at least 90 degrees. Looking does not move or steer you."},
@@ -109,11 +110,18 @@ func event(name: String, payload = null) -> void:
 				if score >= 3: _complete()
 		"landing":
 			if name == "touchdown" and payload is Dictionary and payload.get("safe", false):
-				# The lesson explicitly requires returning to the authored Tethys training
-				# basin. A safe landing on another world must not qualify the tutorial.
+				# Completion requires the authored Tethys basin, not merely any safe
+				# touchdown inside Tethys' much larger surface/collision footprint.
 				var host := get_parent()
 				if host != null and str(host.get("current_world")) == "Tethys":
-					_complete()
+					var ship_node := host.get("ship") as Node3D
+					var world_node = host.get("campaign_world")
+					if ship_node != null and world_node != null and world_node.has_method("landing_target"):
+						var basin_target: Vector3 = world_node.call("landing_target", "Tethys")
+						var offset := ship_node.global_position - basin_target
+						var planar_distance := Vector2(offset.x, offset.z).length()
+						if planar_distance <= TETHYS_TRAINING_BASIN_RADIUS:
+							_complete()
 
 func reset_current() -> void:
 	if index >= LESSONS.size(): return
