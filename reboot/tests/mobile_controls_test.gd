@@ -10,6 +10,14 @@ func _init() -> void:
 	var controls := MobileControls.new()
 	root.add_child(controls)
 
+	# Compact Android landscape viewports must keep the right-side control stack
+	# on-screen without allowing the movement stick's initial touch region to
+	# claim the left-most roll-button column.
+	_assert(is_equal_approx(controls._button_scale_for_viewport(Vector2(760, 420)), 1.0), "reference touch layout must keep authored button size")
+	var compact_scale := controls._button_scale_for_viewport(Vector2(640, 360))
+	_assert(compact_scale < 1.0 and compact_scale >= MobileControls.MIN_BUTTON_SCALE, "short landscape viewports must scale controls down within the touch-size floor")
+	_assert(controls._left_region_limit(Vector2(360, 240)) < 360.0 * 0.43, "narrow landscape movement region must stop before the roll-button column")
+
 	Input.action_press("throttle_up")
 	Input.action_press("brake")
 	Input.action_press("roll_left")
@@ -72,6 +80,7 @@ func _init() -> void:
 	_assert(source.contains("_tap_action(\"cutscene_skip\")"), "mobile cinematic skip parity must remain intact")
 	_assert(source.contains("look_delta.emit(delta_pixels)"), "camera-look region must emit look deltas instead of steering actions")
 	_assert(not source.contains("look_delta.connect(func(delta_pixels): Input.action_press"), "camera-look signal must never be converted into virtual steering actions")
+	_assert(source.contains("get_viewport().size_changed.connect(_layout_buttons)"), "touch controls must relayout after orientation or compact-window size changes")
 
 	var tutorial_source := FileAccess.get_file_as_string("res://scripts/tutorial_director.gd")
 	_assert(tutorial_source.contains("Shift the evidence left/right"), "archaeology lesson must describe the shared alignment mechanic without requiring keyboard keys")
