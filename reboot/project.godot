@@ -13,6 +13,7 @@ HeroShipArt="*res://scripts/hero_ship_art.gd"
 EvidenceOverlay="*res://scripts/evidence_overlay.gd"
 PaleSignal="*res://scripts/pale_signal_system.gd"
 RuntimePersistence="*res://scripts/runtime_persistence.gd"
+RuntimeCheckpoint="*res://scripts/runtime_checkpoint.gd"
 
 [display]
 window/size/viewport_width=1280
