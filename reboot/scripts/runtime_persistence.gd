@@ -15,8 +15,8 @@ func _restore_runtime_state() -> void:
 	var root := get_tree().root.get_node_or_null("PaleSignalReboot")
 	if root == null:
 		return
-	var ship := root.get_node_or_null("Ship")
-	var eva := root.get_node_or_null("EVA")
+	var ship := root.get_node_or_null("Ship") as ShipController
+	var eva := root.get_node_or_null("EVA") as EVAController
 	if ship == null or eva == null:
 		return
 
@@ -37,8 +37,8 @@ func _restore_runtime_state() -> void:
 	eva.global_position = _array_to_vector3(runtime.get("eva_position", []), eva.global_position)
 	eva.rotation = _array_to_vector3(runtime.get("eva_rotation", []), eva.rotation)
 
-	# Re-apply mode after transforms so controller/camera ownership matches the
-	# restored physical context without teleporting the active controller.
+	# Ship-mode reloads keep the hidden EVA actor near the vessel while the ship
+	# camera/controller owns play. EVA-mode reloads preserve the saved EVA point.
 	if restore_mode == "ship":
 		eva.global_position = ship.global_position + Vector3(0, 0.4, 0)
 	ship.throttle_changed.emit(ship.throttle)
