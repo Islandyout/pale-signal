@@ -118,7 +118,11 @@ func event(name: String, payload = null) -> void:
 					var world_node = host.get("campaign_world")
 					if ship_node != null and world_node != null and world_node.has_method("landing_target"):
 						var basin_target: Vector3 = world_node.call("landing_target", "Tethys")
-						var offset := ship_node.global_position - basin_target
+						# CampaignWorld targets and Ship.position are both expressed in the
+						# GameRoot-local coordinate space. Comparing global_position here mixes
+						# spaces if GameRoot is ever transformed and also makes the contract
+						# depend on scene-tree transform propagation rather than landing data.
+						var offset := ship_node.position - basin_target
 						var planar_distance := Vector2(offset.x, offset.z).length()
 						if planar_distance <= TETHYS_TRAINING_BASIN_RADIUS:
 							_complete()
