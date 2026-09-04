@@ -2,6 +2,9 @@ extends CanvasLayer
 
 const FIRST_HOUR_NOTES := ["tethys_1", "tethys_2"]
 const DISPLAY_SECONDS := 8.0
+const PANEL_MARGIN := 16.0
+const PANEL_MAX_WIDTH := 600.0
+const PANEL_HEIGHT := 122.0
 
 var _panel: PanelContainer
 var _title: Label
@@ -16,6 +19,7 @@ var _pending_cards: Array[Dictionary] = []
 func _ready() -> void:
 	layer = 30
 	_build_ui()
+	get_viewport().size_changed.connect(_layout_panel)
 
 func _process(delta: float) -> void:
 	if _hide_timer > 0.0:
@@ -29,12 +33,9 @@ func _build_ui() -> void:
 	_panel = PanelContainer.new()
 	_panel.name = "EvidenceOverlayPanel"
 	_panel.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	_panel.offset_left = -300.0
-	_panel.offset_right = 300.0
-	_panel.offset_top = 170.0
-	_panel.offset_bottom = 292.0
 	_panel.visible = false
 	add_child(_panel)
+	_layout_panel()
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 16)
@@ -56,6 +57,17 @@ func _build_ui() -> void:
 	_detail.add_theme_font_size_override("font_size", 14)
 	_detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	stack.add_child(_detail)
+
+func _layout_panel() -> void:
+	if _panel == null:
+		return
+	var viewport_size := get_viewport_rect().size
+	var panel_width := minf(PANEL_MAX_WIDTH, maxf(260.0, viewport_size.x - PANEL_MARGIN * 2.0))
+	var top := 96.0 if viewport_size.y < 500.0 else 170.0
+	_panel.offset_left = -panel_width * 0.5
+	_panel.offset_right = panel_width * 0.5
+	_panel.offset_top = top
+	_panel.offset_bottom = top + PANEL_HEIGHT
 
 func _poll_archaeology() -> void:
 	var scene := get_tree().current_scene
