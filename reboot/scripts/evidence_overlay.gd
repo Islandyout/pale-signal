@@ -33,6 +33,11 @@ func _build_ui() -> void:
 	_panel = PanelContainer.new()
 	_panel.name = "EvidenceOverlayPanel"
 	_panel.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	# Evidence is observational feedback, never an input owner. In particular,
+	# this card can overlap the mobile look region on short landscape screens;
+	# ignoring GUI hit-testing preserves the same flight/EVA/touch mechanics
+	# while the finding remains readable above them.
+	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_panel.visible = false
 	add_child(_panel)
 	_layout_panel()
