@@ -87,6 +87,14 @@ func _init() -> void:
 		push_error("evidence queue must preserve first-in first-out presentation order")
 		quit(1)
 		return
+	if not overlay_source.contains("get_viewport().size_changed.connect(_layout_panel)"):
+		push_error("evidence presentation must relayout when the viewport changes")
+		quit(1)
+		return
+	if not overlay_source.contains("viewport_size.x - PANEL_MARGIN * 2.0") or not overlay_source.contains("PANEL_MAX_WIDTH"):
+		push_error("evidence cards must stay inside narrow mobile viewports instead of assuming desktop width")
+		quit(1)
+		return
 	archaeology.free()
 	print("ARCHAEOLOGY EVIDENCE TEST: PASS")
 	quit(0)
