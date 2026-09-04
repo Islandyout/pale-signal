@@ -10,6 +10,9 @@ func _init() -> void:
 	_cleanup()
 	var campaign_source := FileAccess.get_file_as_string("res://scripts/campaign_state.gd")
 	var hud_source := FileAccess.get_file_as_string("res://scripts/production_hud.gd")
+	var save_source := FileAccess.get_file_as_string("res://scripts/save_system.gd")
+	var runtime_source := FileAccess.get_file_as_string("res://scripts/runtime_persistence.gd")
+	var project_source := FileAccess.get_file_as_string("res://project.godot")
 	if not campaign_source.contains("\"evidence_notes\": evidence_notes.duplicate(true)"):
 		_fail("campaign snapshot must persist archaeology evidence notes")
 		return
@@ -21,6 +24,24 @@ func _init() -> void:
 		return
 	if not hud_source.contains("if not _reconstruction_is_tutorial_site:"):
 		_fail("Kestra contradiction must not leak into later fragment reconstructions")
+		return
+	if not save_source.contains("serialized[\"runtime\"] = runtime"):
+		_fail("progression saves must include optional physical runtime context when the production scene exists")
+		return
+	if not save_source.contains("if bool(ship.landed):\n\t\tship_velocity = Vector3.ZERO"):
+		_fail("landed runtime snapshots must not preserve pre-touchdown velocity")
+		return
+	if not runtime_source.contains("call_deferred(\"_restore_runtime_state\")"):
+		_fail("physical runtime restore must wait until production controllers are constructed")
+		return
+	if not runtime_source.contains("ship.global_position = _array_to_vector3") or not runtime_source.contains("eva.global_position = _array_to_vector3"):
+		_fail("runtime restore must recover both ship and EVA physical position")
+		return
+	if not runtime_source.contains("ship.velocity = Vector3.ZERO if bool(runtime.get(\"ship_landed\""):
+		_fail("landed reloads must restart physically settled instead of replaying stale touchdown velocity")
+		return
+	if not project_source.contains("RuntimePersistence=\"*res://scripts/runtime_persistence.gd\""):
+		_fail("runtime persistence must be enabled in the production Godot project")
 		return
 
 	# The two authored first-hour reconstructions must award persistent, distinct
@@ -59,7 +80,7 @@ func _init() -> void:
 					"title": "Kestra Foundation Contradiction",
 					"detail": "Talari survey and buried inscription disagree."
 				}
-		}
+			}
 		}
 	}
 	var current := {
