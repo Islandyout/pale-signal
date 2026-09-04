@@ -55,6 +55,12 @@ func _init() -> void:
 	_assert(tutorial_source.contains("then USE. RESET restarts this step"), "archaeology lesson must use labels present on the touch control layer")
 	_assert(not tutorial_source.contains("F3 or touch RESET"), "shared tutorial copy must not present keyboard-first recovery instructions to touch players")
 
+	var game_root_source := FileAccess.get_file_as_string("res://scripts/game_root.gd")
+	_assert(game_root_source.contains("LEFT STICK · SHIFT LEFT"), "mobile reconstruction state must name the actual touch alignment control")
+	_assert(game_root_source.contains("HOLD · USE LOCK"), "mobile reconstruction state must name the actual touch lock control")
+	_assert(game_root_source.contains("var use_label := \"USE\" if _is_touch_input() else \"E\""), "world interaction hints must select touch or desktop action labels")
+	_assert(game_root_source.contains("var exit_hint := \"USE TO EXIT\" if _is_touch_input() else \"E TO EXIT\""), "landing and surface exit hints must remain touch-aware")
+
 	controls.free()
 	if failures == 0:
 		print("PALE SIGNAL MOBILE CONTROLS TEST: PASS")
