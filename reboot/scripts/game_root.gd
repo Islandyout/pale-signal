@@ -486,5 +486,13 @@ func _finish_cutscene() -> void:
 	cutscene_active = false
 	intro_camera.current = false
 	_set_eva_cinematic_visible(false)
-	_set_mode(mode)
-	if mobile_controls: mobile_controls.visible = DisplayServer.is_touchscreen_available()
+	# Cinematics are observational only. Restore controller/camera ownership in-place;
+	# do not call _set_mode(), because mode transitions intentionally reposition EVA.
+	var ship_active := mode == "ship"
+	eva.enabled = not ship_active
+	ship.enabled = ship_active
+	eva.camera.current = not ship_active
+	ship.camera.current = ship_active
+	if mobile_controls:
+		mobile_controls.set_mode(mode)
+		mobile_controls.visible = DisplayServer.is_touchscreen_available()
