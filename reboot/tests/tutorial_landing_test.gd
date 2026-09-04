@@ -2,8 +2,11 @@ extends SceneTree
 
 class LandingWorld:
 	extends Node
+	var reported_world := "Kestra"
 	func landing_target(_world: String) -> Vector3:
 		return Vector3(0, 1, 60)
+	func surface_info(_position: Vector3) -> Dictionary:
+		return {"world": reported_world}
 
 class LandingHost:
 	extends Node3D
@@ -38,9 +41,9 @@ func _init() -> void:
 	_assert(tutorial.index == 10, "safe touchdown on Kestra must not complete the Tethys landing lesson")
 	_assert(not tutorial.completed.has("landing"), "off-world touchdown must not fabricate tutorial completion")
 
-	# Being on Tethys is still insufficient if the ship landed outside the
-	# authored training basin.
-	host.current_world = "Tethys"
+	# Being physically on Tethys is still insufficient if the ship landed outside
+	# the authored training basin.
+	host.campaign_world.reported_world = "Tethys"
 	host.ship.position = Vector3(240, 1, 60)
 	tutorial.event("touchdown", {"safe": true})
 	_assert(tutorial.index == 10, "safe touchdown outside the Tethys training basin must not complete the landing lesson")
@@ -52,14 +55,16 @@ func _init() -> void:
 	tutorial.event("touchdown", {"safe": false})
 	_assert(tutorial.index == 10, "unsafe touchdown in the Tethys basin must not complete the landing lesson")
 
-	# CampaignWorld landing targets and ship position are GameRoot-local. Moving
-	# the whole host must not change whether the ship is inside the authored basin.
-	# This protects the local/global coordinate-space contract from regression.
+	# GameRoot.current_world is frame-updated presentation context and can still be
+	# stale when ShipController emits touchdown during a physics tick. The canonical
+	# physical surface query must therefore win and allow a valid Tethys landing.
+	host.current_world = "Kestra"
+	host.campaign_world.reported_world = "Tethys"
 	host.position = Vector3(500, 20, -300)
 	host.ship.position = Vector3(0, 1, 60)
 	tutorial.event("touchdown", {"safe": true})
-	_assert(tutorial.index == TutorialDirector.LESSONS.size(), "translated GameRoot must still accept a safe local Tethys basin touchdown")
-	_assert(tutorial.completed.has("landing"), "translated GameRoot must preserve authored basin completion")
+	_assert(tutorial.index == TutorialDirector.LESSONS.size(), "physical Tethys surface state must complete landing even if cached current_world is stale")
+	_assert(tutorial.completed.has("landing"), "stale presentation context must not block a valid physical Tethys basin touchdown")
 
 	host.queue_free()
 	if failures == 0:
