@@ -6,7 +6,7 @@ class LandingWorld:
 		return Vector3(0, 1, 60)
 
 class LandingHost:
-	extends Node
+	extends Node3D
 	var current_world := "Kestra"
 	var ship: Node3D
 	var campaign_world: LandingWorld
@@ -52,10 +52,14 @@ func _init() -> void:
 	tutorial.event("touchdown", {"safe": false})
 	_assert(tutorial.index == 10, "unsafe touchdown in the Tethys basin must not complete the landing lesson")
 
-	# Only a safe physical touchdown after returning to the authored basin qualifies.
+	# CampaignWorld landing targets and ship position are GameRoot-local. Moving
+	# the whole host must not change whether the ship is inside the authored basin.
+	# This protects the local/global coordinate-space contract from regression.
+	host.position = Vector3(500, 20, -300)
+	host.ship.position = Vector3(0, 1, 60)
 	tutorial.event("touchdown", {"safe": true})
-	_assert(tutorial.index == TutorialDirector.LESSONS.size(), "safe Tethys basin touchdown must complete the final tutorial lesson")
-	_assert(tutorial.completed.has("landing"), "valid Tethys basin touchdown must mark landing complete")
+	_assert(tutorial.index == TutorialDirector.LESSONS.size(), "translated GameRoot must still accept a safe local Tethys basin touchdown")
+	_assert(tutorial.completed.has("landing"), "translated GameRoot must preserve authored basin completion")
 
 	host.queue_free()
 	if failures == 0:
