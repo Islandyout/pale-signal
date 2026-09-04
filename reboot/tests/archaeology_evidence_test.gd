@@ -12,9 +12,17 @@ func _init() -> void:
 		push_error("first archaeology pass must expose the load-path evidence layer")
 		quit(1)
 		return
+	if not archaeology.evidence_finding().contains("STORM SHEAR"):
+		push_error("first archaeology finding must translate structural correlation into a readable physical inference")
+		quit(1)
+		return
 	archaeology.pass_index = 1
 	if archaeology.evidence_layer_name() != "RESTRAINT TRACE":
 		push_error("second archaeology pass must expose the restraint-trace evidence layer")
+		quit(1)
+		return
+	if not archaeology.evidence_finding().contains("ADDED LATER"):
+		push_error("second archaeology finding must establish that restraint hardware postdates the original construction")
 		quit(1)
 		return
 	archaeology.pass_index = 2
@@ -22,9 +30,17 @@ func _init() -> void:
 		push_error("third archaeology pass must expose chronology that can challenge the storm-damage reading")
 		quit(1)
 		return
+	if not archaeology.evidence_finding().contains("OFFICIAL STORM ACCOUNT IS INCOMPLETE"):
+		push_error("third archaeology finding must make the conflicting-history inference player-readable")
+		quit(1)
+		return
 	var source := FileAccess.get_file_as_string("res://scripts/archaeology_system.gd")
 	if not source.contains("EVIDENCE CORRELATED"):
 		push_error("completed reconstruction must report evidence correlation rather than a generic lock")
+		quit(1)
+		return
+	if not source.contains("evidence_pass_locked.emit"):
+		push_error("each successful reconstruction pass must publish its physical finding")
 		quit(1)
 		return
 	if not source.contains("storm damage"):
@@ -57,6 +73,10 @@ func _init() -> void:
 		return
 	if not overlay_source.contains("_campaign_instance_id != campaign_id") or not overlay_source.contains("_seen_notes.clear()"):
 		push_error("evidence overlay must reseed seen evidence instead of replaying loaded notes as new discoveries")
+		quit(1)
+		return
+	if not overlay_source.contains("evidence_pass_locked") or not overlay_source.contains("EVIDENCE %d / %d"):
+		push_error("hero archaeology findings must be surfaced through the contextual evidence overlay")
 		quit(1)
 		return
 	archaeology.free()
