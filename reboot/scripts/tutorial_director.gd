@@ -20,7 +20,7 @@ const LESSONS := [
 	{"id":"launch", "title":"MANUAL VTOL LAUNCH", "detail":"Raise throttle. Lift is independent of nose pitch; no cutscene moves the ship."},
 	{"id":"space", "title":"ATMOSPHERE TO SPACE", "detail":"Climb continuously through the atmosphere ceiling using the real flight model."},
 	{"id":"nav", "title":"NAVIGATION ASSIST", "detail":"Toggle NAV and fly the route yourself. Experience departure, transfer, and approach guidance without surrendering control."},
-	{"id":"landing", "title":"MANUAL LANDING", "detail":"Return to the training basin and touch down inside the safe vertical/lateral envelope."}
+	{"id":"landing", "title":"MANUAL LANDING", "detail":"Return to the Tethys training basin and touch down inside the safe vertical/lateral envelope."}
 ]
 
 var index := 0
@@ -108,7 +108,12 @@ func event(name: String, payload = null) -> void:
 				_emit_current(float(score) / 3.0)
 				if score >= 3: _complete()
 		"landing":
-			if name == "touchdown" and payload is Dictionary and payload.get("safe", false): _complete()
+			if name == "touchdown" and payload is Dictionary and payload.get("safe", false):
+				# The lesson explicitly requires returning to the authored Tethys training
+				# basin. A safe landing on another world must not qualify the tutorial.
+				var host := get_parent()
+				if host != null and str(host.get("current_world")) == "Tethys":
+					_complete()
 
 func reset_current() -> void:
 	if index >= LESSONS.size(): return
