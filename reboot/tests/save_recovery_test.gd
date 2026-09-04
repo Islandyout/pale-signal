@@ -12,6 +12,7 @@ func _init() -> void:
 	var hud_source := FileAccess.get_file_as_string("res://scripts/production_hud.gd")
 	var save_source := FileAccess.get_file_as_string("res://scripts/save_system.gd")
 	var runtime_source := FileAccess.get_file_as_string("res://scripts/runtime_persistence.gd")
+	var checkpoint_source := FileAccess.get_file_as_string("res://scripts/runtime_checkpoint.gd")
 	var project_source := FileAccess.get_file_as_string("res://project.godot")
 	if not campaign_source.contains("\"evidence_notes\": evidence_notes.duplicate(true)"):
 		_fail("campaign snapshot must persist archaeology evidence notes")
@@ -42,6 +43,12 @@ func _init() -> void:
 		return
 	if not project_source.contains("RuntimePersistence=\"*res://scripts/runtime_persistence.gd\""):
 		_fail("runtime persistence must be enabled in the production Godot project")
+		return
+	if not project_source.contains("RuntimeCheckpoint=\"*res://scripts/runtime_checkpoint.gd\""):
+		_fail("controller-mode checkpoint persistence must be enabled in the production Godot project")
+		return
+	if not checkpoint_source.contains("if current_mode == _last_mode:") or not checkpoint_source.contains("_root.call_deferred(\"_save_game\")"):
+		_fail("boarding and disembark mode transitions must checkpoint through the canonical save path")
 		return
 
 	# The two authored first-hour reconstructions must award persistent, distinct
