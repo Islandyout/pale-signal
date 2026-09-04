@@ -39,6 +39,23 @@ func _init() -> void:
 	_assert(controls.look_touch == -1, "ship transition must require a fresh camera-look touch")
 	_assert(controls.look_last == Vector2.ZERO, "ship transition must not inherit stale camera-look deltas")
 
+	# Contract-level behavior: the ship touch stick owns explicit steering only.
+	# Screen-right + screen-up must map to yaw-right + pitch-up, while roll stays
+	# on its dedicated buttons and camera look is not synthesized as steering.
+	controls.left_origin = Vector2(200, 200)
+	controls.left_position = Vector2(260, 140)
+	controls._update_left_actions()
+	_assert(Input.is_action_pressed("yaw_right"), "ship touch stick right must drive explicit yaw-right")
+	_assert(not Input.is_action_pressed("yaw_left"), "ship touch stick right must release yaw-left")
+	_assert(Input.is_action_pressed("pitch_up"), "ship touch stick up must drive explicit pitch-up")
+	_assert(not Input.is_action_pressed("pitch_down"), "ship touch stick up must release pitch-down")
+	_assert(not Input.is_action_pressed("roll_left") and not Input.is_action_pressed("roll_right"), "ship touch stick must not synthesize roll")
+
+	controls.left_position = controls.left_origin
+	controls._update_left_actions()
+	_assert(not Input.is_action_pressed("yaw_left") and not Input.is_action_pressed("yaw_right"), "centered ship touch stick must release yaw")
+	_assert(not Input.is_action_pressed("pitch_up") and not Input.is_action_pressed("pitch_down"), "centered ship touch stick must release pitch")
+
 	Input.action_press("nav_toggle")
 	Input.action_press("cutscene_skip")
 	controls.set_mode("eva")
@@ -49,6 +66,8 @@ func _init() -> void:
 	_assert(source.contains("_add_tap_button(\"tutorial_reset\", \"RESET\""), "mobile EVA must expose tutorial/reconstruction recovery")
 	_assert(source.contains("\"scan\",\"interact\",\"tutorial_reset\""), "mobile recovery control must be available in EVA mode")
 	_assert(source.contains("_tap_action(\"cutscene_skip\")"), "mobile cinematic skip parity must remain intact")
+	_assert(source.contains("look_delta.emit(delta_pixels)"), "camera-look region must emit look deltas instead of steering actions")
+	_assert(not source.contains("look_delta.connect(func(delta_pixels): Input.action_press"), "camera-look signal must never be converted into virtual steering actions")
 
 	var tutorial_source := FileAccess.get_file_as_string("res://scripts/tutorial_director.gd")
 	_assert(tutorial_source.contains("Shift the evidence left/right"), "archaeology lesson must describe the shared alignment mechanic without requiring keyboard keys")
