@@ -3,6 +3,10 @@ extends SceneTree
 var failures := 0
 
 func _init() -> void:
+	# Standalone --script tests do not instantiate GameRoot, so mirror the
+	# production startup contract explicitly before exercising virtual input.
+	InputBootstrap.ensure_actions()
+
 	var controls := MobileControls.new()
 	root.add_child(controls)
 
