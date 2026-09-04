@@ -61,6 +61,9 @@ func _init() -> void:
 	_assert(game_root_source.contains("var use_label := \"USE\" if _is_touch_input() else \"E\""), "world interaction hints must select touch or desktop action labels")
 	_assert(game_root_source.contains("var exit_hint := \"USE TO EXIT\" if _is_touch_input() else \"E TO EXIT\""), "landing and surface exit hints must remain touch-aware")
 
+	var project_source := FileAccess.get_file_as_string("res://project.godot")
+	_assert(project_source.contains("window/handheld/orientation=4"), "mobile build must allow either landscape rotation while keeping the touch HUD out of portrait")
+
 	controls.free()
 	if failures == 0:
 		print("PALE SIGNAL MOBILE CONTROLS TEST: PASS")
