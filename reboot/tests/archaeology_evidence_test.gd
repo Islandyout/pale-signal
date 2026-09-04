@@ -107,6 +107,10 @@ func _init() -> void:
 		push_error("evidence layout must be recalculated after wrapped card text is assigned")
 		quit(1)
 		return
+	if not overlay_source.contains("_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE"):
+		push_error("observational evidence feedback must never consume desktop or mobile control input")
+		quit(1)
+		return
 	archaeology.free()
 	print("ARCHAEOLOGY EVIDENCE TEST: PASS")
 	quit(0)
