@@ -3,6 +3,7 @@ extends Node
 
 signal reconstruction_progress(value: float)
 signal reconstruction_state(stage: String, alignment: float, target: float, lock_ready: bool)
+signal evidence_pass_locked(layer: String, finding: String, pass_number: int, total_passes: int)
 signal reconstruction_complete
 
 @export var alignment_speed := 0.28
@@ -49,6 +50,11 @@ func tick(delta: float) -> void:
 	reconstruction_progress.emit(clampf(overall_progress, 0.0, 1.0))
 	_emit_state(lock_ready)
 	if lock_ready and Input.is_action_just_pressed("interact"):
+		# Every successful correlation surfaces the physical inference before the
+		# next layer begins. The reconstruction is evidence assembly, not a silent
+		# alignment minigame, and the third inference directly challenges the
+		# settlement's simple storm-damage account.
+		evidence_pass_locked.emit(evidence_layer_name(), evidence_finding(), pass_index + 1, required_passes)
 		if pass_index + 1 < required_passes:
 			_advance_pass()
 		else:
@@ -103,6 +109,15 @@ func evidence_layer_name() -> String:
 			return "RESTRAINT TRACE"
 		_:
 			return "ALTERATION SEQUENCE"
+
+func evidence_finding() -> String:
+	match pass_index:
+		0:
+			return "LOAD PATH INTACT · COLLAPSE DOES NOT MATCH SIMPLE STORM SHEAR"
+		1:
+			return "RESTRAINT SCARS CROSS ORIGINAL JOINTS · HARDWARE WAS ADDED LATER"
+		_:
+			return "ALTERATION PREDATES FINAL COLLAPSE · OFFICIAL STORM ACCOUNT IS INCOMPLETE"
 
 func _stage_name(lock_ready: bool) -> String:
 	if not evidence_scanned:
