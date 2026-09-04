@@ -95,6 +95,18 @@ func _init() -> void:
 		push_error("evidence cards must stay inside narrow mobile viewports instead of assuming desktop width")
 		quit(1)
 		return
+	if not overlay_source.contains("_panel.get_combined_minimum_size().y") or not overlay_source.contains("PANEL_MIN_HEIGHT"):
+		push_error("wrapped evidence cards must grow to their content instead of clipping findings at a fixed desktop height")
+		quit(1)
+		return
+	if not overlay_source.contains("viewport_size.y - top - PANEL_MARGIN"):
+		push_error("responsive evidence height must remain capped to the visible viewport")
+		quit(1)
+		return
+	if not overlay_source.contains("_detail.text = str(card.get(\"detail\", \"\"))\n\t# Recalculate") or not overlay_source.contains("\t_layout_panel()\n\t_panel.visible = true"):
+		push_error("evidence layout must be recalculated after wrapped card text is assigned")
+		quit(1)
+		return
 	archaeology.free()
 	print("ARCHAEOLOGY EVIDENCE TEST: PASS")
 	quit(0)
