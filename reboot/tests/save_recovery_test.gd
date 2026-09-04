@@ -50,6 +50,13 @@ func _init() -> void:
 	if not checkpoint_source.contains("if current_mode == _last_mode:") or not checkpoint_source.contains("_root.call_deferred(\"_save_game\")"):
 		_fail("boarding and disembark mode transitions must checkpoint through the canonical save path")
 		return
+	for milestone_signal in ["launched", "crossed_atmosphere", "touchdown", "world_changed"]:
+		if not checkpoint_source.contains("has_signal(\"%s\")" % milestone_signal):
+			_fail("physical milestone checkpoint missing signal: %s" % milestone_signal)
+			return
+	if not checkpoint_source.contains("_checkpoint_pending") or not checkpoint_source.contains("call_deferred(\"_flush_checkpoint\")"):
+		_fail("physical milestone checkpoints must coalesce duplicate same-frame save requests")
+		return
 
 	# The two authored first-hour reconstructions must award persistent, distinct
 	# conclusions through the same fragment collection path used by gameplay.
