@@ -4,7 +4,7 @@ const FIRST_HOUR_NOTES := ["tethys_1", "tethys_2"]
 const DISPLAY_SECONDS := 8.0
 const PANEL_MARGIN := 16.0
 const PANEL_MAX_WIDTH := 600.0
-const PANEL_HEIGHT := 122.0
+const PANEL_MIN_HEIGHT := 122.0
 
 var _panel: PanelContainer
 var _title: Label
@@ -64,10 +64,17 @@ func _layout_panel() -> void:
 	var viewport_size := get_viewport().get_visible_rect().size
 	var panel_width := minf(PANEL_MAX_WIDTH, maxf(260.0, viewport_size.x - PANEL_MARGIN * 2.0))
 	var top := 96.0 if viewport_size.y < 500.0 else 170.0
+	# Wrapped evidence can require substantially more vertical room on a phone.
+	# Respect the container's real minimum after wrapping instead of clipping it
+	# into a desktop-sized fixed-height card. The viewport cap keeps the panel
+	# inside the visible play area on short landscape screens.
+	var content_height := maxf(PANEL_MIN_HEIGHT, _panel.get_combined_minimum_size().y)
+	var available_height := maxf(PANEL_MIN_HEIGHT, viewport_size.y - top - PANEL_MARGIN)
+	var panel_height := minf(content_height, available_height)
 	_panel.offset_left = -panel_width * 0.5
 	_panel.offset_right = panel_width * 0.5
 	_panel.offset_top = top
-	_panel.offset_bottom = top + PANEL_HEIGHT
+	_panel.offset_bottom = top + panel_height
 
 func _poll_archaeology() -> void:
 	var scene := get_tree().current_scene
@@ -138,6 +145,9 @@ func _queue_card(title: String, detail: String) -> void:
 func _present_card(card: Dictionary) -> void:
 	_title.text = str(card.get("title", "EVIDENCE"))
 	_detail.text = str(card.get("detail", ""))
+	# Recalculate after assigning text so autowrap contributes its true minimum
+	# height. This matters on mobile where the same finding spans more lines.
+	_layout_panel()
 	_panel.visible = true
 	_hide_timer = DISPLAY_SECONDS
 
