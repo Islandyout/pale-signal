@@ -110,22 +110,30 @@ func event(name: String, payload = null) -> void:
 				if score >= 3: _complete()
 		"landing":
 			if name == "touchdown" and payload is Dictionary and payload.get("safe", false):
-				# Completion requires the authored Tethys basin, not merely any safe
-				# touchdown inside Tethys' much larger surface/collision footprint.
+				# Completion is derived from the canonical physical surface query at the
+				# touchdown position. GameRoot.current_world is presentation context updated
+				# on its own frame and may still describe the previous/deep-space context
+				# when ShipController emits touchdown during a physics tick.
 				var host := get_parent()
-				if host != null and str(host.get("current_world")) == "Tethys":
+				if host != null:
 					var ship_node := host.get("ship") as Node3D
 					var world_node = host.get("campaign_world")
 					if ship_node != null and world_node != null and world_node.has_method("landing_target"):
-						var basin_target: Vector3 = world_node.call("landing_target", "Tethys")
-						# CampaignWorld targets and Ship.position are both expressed in the
-						# GameRoot-local coordinate space. Comparing global_position here mixes
-						# spaces if GameRoot is ever transformed and also makes the contract
-						# depend on scene-tree transform propagation rather than landing data.
-						var offset := ship_node.position - basin_target
-						var planar_distance := Vector2(offset.x, offset.z).length()
-						if planar_distance <= TETHYS_TRAINING_BASIN_RADIUS:
-							_complete()
+						var physical_world := str(host.get("current_world"))
+						if world_node.has_method("surface_info"):
+							var surface = world_node.call("surface_info", ship_node.position)
+							if surface is Dictionary:
+								physical_world = str(surface.get("world", ""))
+						if physical_world == "Tethys":
+							var basin_target: Vector3 = world_node.call("landing_target", "Tethys")
+							# CampaignWorld targets and Ship.position are both expressed in the
+							# GameRoot-local coordinate space. Comparing global_position here mixes
+							# spaces if GameRoot is ever transformed and also makes the contract
+							# depend on scene-tree transform propagation rather than landing data.
+							var offset := ship_node.position - basin_target
+							var planar_distance := Vector2(offset.x, offset.z).length()
+							if planar_distance <= TETHYS_TRAINING_BASIN_RADIUS:
+								_complete()
 
 func reset_current() -> void:
 	if index >= LESSONS.size(): return
