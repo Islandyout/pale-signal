@@ -61,7 +61,7 @@ func _build_ui() -> void:
 func _layout_panel() -> void:
 	if _panel == null:
 		return
-	var viewport_size := get_viewport_rect().size
+	var viewport_size := get_viewport().get_visible_rect().size
 	var panel_width := minf(PANEL_MAX_WIDTH, maxf(260.0, viewport_size.x - PANEL_MARGIN * 2.0))
 	var top := 96.0 if viewport_size.y < 500.0 else 170.0
 	_panel.offset_left = -panel_width * 0.5
