@@ -78,6 +78,8 @@ jobs:
         run: godot --headless --path reboot --script res://tests/kestra_scope_test.gd
       - name: Verify Pale Signal phenomenon isolation
         run: godot --headless --path reboot --script res://tests/pale_signal_test.gd
+      - name: Verify audio remains observational
+        run: godot --headless --path reboot --script res://tests/audio_contract_test.gd
       - name: Verify mobile mode transitions release held input
         run: godot --headless --path reboot --script res://tests/mobile_controls_test.gd
       - name: Verify save corruption recovery
