@@ -79,6 +79,14 @@ func _init() -> void:
 		push_error("hero archaeology findings must be surfaced through the contextual evidence overlay")
 		quit(1)
 		return
+	if not overlay_source.contains("_pending_cards") or not overlay_source.contains("_queue_card") or not overlay_source.contains("_show_next_card"):
+		push_error("consecutive archaeology and campaign evidence must queue instead of overwriting a readable finding")
+		quit(1)
+		return
+	if not overlay_source.contains("_pending_cards.append(card)") or not overlay_source.contains("_pending_cards.pop_front()"):
+		push_error("evidence queue must preserve first-in first-out presentation order")
+		quit(1)
+		return
 	archaeology.free()
 	print("ARCHAEOLOGY EVIDENCE TEST: PASS")
 	quit(0)
