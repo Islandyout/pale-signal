@@ -9,6 +9,7 @@ var _detail: Label
 var _seen_notes: Dictionary = {}
 var _campaign_ready := false
 var _campaign_instance_id := 0
+var _archaeology_instance_id := 0
 var _hide_timer := 0.0
 
 func _ready() -> void:
@@ -20,6 +21,7 @@ func _process(delta: float) -> void:
 		_hide_timer = maxf(0.0, _hide_timer - delta)
 		if _hide_timer <= 0.0:
 			_panel.visible = false
+	_poll_archaeology()
 	_poll_campaign_evidence()
 
 func _build_ui() -> void:
@@ -53,6 +55,27 @@ func _build_ui() -> void:
 	_detail.add_theme_font_size_override("font_size", 14)
 	_detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	stack.add_child(_detail)
+
+func _poll_archaeology() -> void:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
+	var archaeology = scene.get("archaeology")
+	if archaeology == null or not (archaeology is Object):
+		return
+	var archaeology_object := archaeology as Object
+	var archaeology_id := archaeology_object.get_instance_id()
+	if _archaeology_instance_id == archaeology_id:
+		return
+	_archaeology_instance_id = archaeology_id
+	if archaeology_object.has_signal("evidence_pass_locked"):
+		archaeology_object.connect("evidence_pass_locked", _on_archaeology_evidence_pass)
+
+func _on_archaeology_evidence_pass(layer_name: String, finding: String, pass_number: int, total_passes: int) -> void:
+	_title.text = "EVIDENCE %d / %d · %s" % [pass_number, total_passes, layer_name]
+	_detail.text = finding
+	_panel.visible = true
+	_hide_timer = DISPLAY_SECONDS
 
 func _poll_campaign_evidence() -> void:
 	var scene := get_tree().current_scene
