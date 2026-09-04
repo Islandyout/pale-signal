@@ -246,11 +246,18 @@ func _connect_systems() -> void:
 	tutorial.request_reveal_cutscene.connect(_play_reveal_cutscene)
 	mobile_controls.look_delta.connect(_on_mobile_look)
 
+func _is_touch_input() -> bool:
+	return DisplayServer.is_touchscreen_available()
+
 func _on_reconstruction_state(stage: String, alignment: float, target: float, lock_ready: bool) -> void:
 	if not archaeology.active and stage != "RECONSTRUCTION LOCKED":
 		return
 	var delta := target - alignment
-	var direction := "HOLD · E LOCK" if lock_ready else ("A · SHIFT LEFT" if delta < 0.0 else "D · SHIFT RIGHT")
+	var direction: String
+	if _is_touch_input():
+		direction = "HOLD · USE LOCK" if lock_ready else ("LEFT STICK · SHIFT LEFT" if delta < 0.0 else "LEFT STICK · SHIFT RIGHT")
+	else:
+		direction = "HOLD · E LOCK" if lock_ready else ("A · SHIFT LEFT" if delta < 0.0 else "D · SHIFT RIGHT")
 	scan_label.text = "%s · %s · OFFSET %.2f" % [stage, direction, absf(delta)]
 
 func _restore_first_hour_progress() -> void:
@@ -286,12 +293,12 @@ func _on_subject_scanned(target: Interactable) -> void:
 
 func _handle_interaction() -> void:
 	if archaeology.active:
-		# The archaeology system consumes E only when alignment is valid.
+		# The archaeology system consumes the shared interact action only when alignment is valid.
 		return
 	if eva.global_position.distance_to(ship.global_position) <= boarding_range:
 		_set_mode("ship")
 		tutorial.event("boarded")
-		hint_label.text = "SHIP BOARDED · N NAV · TAB ROUTE"
+		hint_label.text = "SHIP BOARDED · NAV BUTTON FOR GUIDANCE" if _is_touch_input() else "SHIP BOARDED · N NAV · TAB ROUTE"
 		return
 	if eva.global_position.distance_to(sample.global_position) <= 2.2:
 		if sample.scanned and not sample_collected:
@@ -305,7 +312,7 @@ func _handle_interaction() -> void:
 		if not archaeology.active:
 			active_campaign_fragment = ""
 			archaeology.begin()
-			hint_label.text = "SCAN FOUNDATION, THEN A/D ALIGN · E LOCK"
+			hint_label.text = "SCAN FOUNDATION, THEN LEFT STICK ALIGN · USE LOCK" if _is_touch_input() else "SCAN FOUNDATION, THEN A/D ALIGN · E LOCK"
 		return
 	var campaign_site := campaign_world.nearest_site(eva.global_position)
 	if campaign_site != null:
@@ -333,7 +340,7 @@ func _handle_campaign_site(site: Interactable) -> void:
 			active_campaign_fragment = str(parts[1])
 			archaeology.begin()
 			archaeology.mark_scanned()
-			hint_label.text = "RECONSTRUCT SIGNAL GEOMETRY · A/D ALIGN · E LOCK"
+			hint_label.text = "RECONSTRUCT SIGNAL GEOMETRY · LEFT STICK ALIGN · USE LOCK" if _is_touch_input() else "RECONSTRUCT SIGNAL GEOMETRY · A/D ALIGN · E LOCK"
 		"ending":
 			if campaign.world_unlocked("Nemesis"):
 				_finish_campaign()
@@ -373,12 +380,14 @@ func _set_nav_destination(world: String) -> void:
 
 func _on_touchdown(v: float, l: float, safe: bool) -> void:
 	tutorial.event("touchdown", {"vertical":v, "lateral":l, "safe":safe})
-	hint_label.text = "TOUCHDOWN %s · V %.1f · L %.1f · E TO EXIT" % ["SAFE" if safe else "HARD", v, l]
+	var exit_hint := "USE TO EXIT" if _is_touch_input() else "E TO EXIT"
+	hint_label.text = "TOUCHDOWN %s · V %.1f · L %.1f · %s" % ["SAFE" if safe else "HARD", v, l, exit_hint]
 	_save_game()
 
 func _on_world_changed(world: String) -> void:
 	current_world = world
-	hint_label.text = "%s SURFACE ZONE · LAND MANUALLY, THEN E TO EXIT" % world.to_upper()
+	var exit_hint := "USE TO EXIT" if _is_touch_input() else "E TO EXIT"
+	hint_label.text = "%s SURFACE ZONE · LAND MANUALLY, THEN %s" % [world.to_upper(), exit_hint]
 	_update_campaign_ui()
 
 func _on_tutorial_completed() -> void:
@@ -400,18 +409,19 @@ func _finish_campaign() -> void:
 
 func _update_interaction_hint() -> void:
 	if archaeology.active: return
+	var use_label := "USE" if _is_touch_input() else "E"
 	if eva.global_position.distance_to(ship.global_position) <= boarding_range:
-		hint_label.text = "E · BOARD SHIP"
+		hint_label.text = "%s · BOARD SHIP" % use_label
 		return
 	if eva.global_position.distance_to(sample.global_position) <= 2.2 and not sample_collected:
-		hint_label.text = "E · COLLECT SAMPLE" if sample.scanned else "SCAN BEFORE COLLECTION"
+		hint_label.text = "%s · COLLECT SAMPLE" % use_label if sample.scanned else "SCAN BEFORE COLLECTION"
 		return
 	if eva.global_position.distance_to(ruin.global_position) <= 3.0 and not tutorial.completed.has("archaeology"):
-		hint_label.text = "E · INSPECT FOUNDATION"
+		hint_label.text = "%s · INSPECT FOUNDATION" % use_label
 		return
 	var site := campaign_world.nearest_site(eva.global_position)
 	if site != null:
-		if site.scanned: hint_label.text = "E · %s" % site.display_name.to_upper()
+		if site.scanned: hint_label.text = "%s · %s" % [use_label, site.display_name.to_upper()]
 		else: hint_label.text = "SCAN · %s" % site.display_name.to_upper()
 
 func _update_campaign_ui() -> void:
