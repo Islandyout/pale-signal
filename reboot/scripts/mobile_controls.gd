@@ -3,6 +3,9 @@ extends Control
 
 signal look_delta(delta_pixels: Vector2)
 
+const BUTTON_REFERENCE_VIEWPORT := Vector2(760.0, 420.0)
+const MIN_BUTTON_SCALE := 0.68
+
 var mode := "eva"
 var left_touch := -1
 var look_touch := -1
@@ -17,6 +20,7 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	visible = DisplayServer.is_touchscreen_available()
+	get_viewport().size_changed.connect(_layout_buttons)
 	if visible:
 		_build_buttons()
 		_build_cutscene_skip_button()
@@ -53,14 +57,15 @@ func set_mode(value: String) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible: return
 	var size: Vector2 = get_viewport_rect().size
+	var left_limit := _left_region_limit(size)
 	if event is InputEventScreenTouch:
 		if event.pressed:
-			if event.position.x < size.x * 0.43 and event.position.y > size.y * 0.38 and left_touch < 0:
+			if event.position.x < left_limit and event.position.y > size.y * 0.38 and left_touch < 0:
 				left_touch = event.index
 				left_origin = event.position
 				left_position = event.position
 				queue_redraw()
-			elif event.position.x >= size.x * 0.43 and event.position.x < size.x * 0.80 and look_touch < 0:
+			elif event.position.x >= left_limit and event.position.x < size.x * 0.80 and look_touch < 0:
 				look_touch = event.index
 				look_last = event.position
 		else:
@@ -78,6 +83,31 @@ func _unhandled_input(event: InputEvent) -> void:
 			var delta_pixels: Vector2 = event.position - look_last
 			look_last = event.position
 			look_delta.emit(delta_pixels)
+
+func _button_scale_for_viewport(size: Vector2) -> float:
+	# Buttons were authored against a 760x420 landscape safe area. Scale only
+	# downward on smaller viewports so NAV/roll/throttle controls cannot leave the
+	# screen after Android browser chrome, cutouts, or compact-window resizing.
+	if size.x <= 0.0 or size.y <= 0.0:
+		return 1.0
+	return clampf(minf(size.x / BUTTON_REFERENCE_VIEWPORT.x, size.y / BUTTON_REFERENCE_VIEWPORT.y), MIN_BUTTON_SCALE, 1.0)
+
+func _left_region_limit(size: Vector2) -> float:
+	# Preserve a dedicated movement/steering region without letting its initial
+	# touch claim extend underneath the left-most roll column on narrow screens.
+	var scale := _button_scale_for_viewport(size)
+	var roll_column_left := size.x - 308.0 * scale
+	return maxf(96.0, minf(size.x * 0.43, roll_column_left - 12.0))
+
+func _layout_buttons() -> void:
+	if _buttons.is_empty():
+		return
+	var scale := _button_scale_for_viewport(get_viewport_rect().size)
+	for item in _buttons:
+		var button: Button = item.button
+		var base_offset: Vector2 = item.offset
+		button.custom_minimum_size = Vector2(92.0, 56.0) * scale
+		button.position = base_offset * scale
 
 func _update_left_actions() -> void:
 	var v: Vector2 = (left_position - left_origin) / stick_radius
@@ -127,6 +157,7 @@ func _build_buttons() -> void:
 	_add_hold_button("roll_left", "ROLL L", Vector2(-308, -250), "roll_left")
 	_add_hold_button("roll_right", "ROLL R", Vector2(-308, -178), "roll_right")
 	set_mode(mode)
+	_layout_buttons()
 
 func _build_cutscene_skip_button() -> void:
 	var button := Button.new()
@@ -156,12 +187,12 @@ func _add_hold_button(id: String, label: String, offset: Vector2, action: String
 	var b := _new_button(label, offset)
 	b.button_down.connect(func(): Input.action_press(action))
 	b.button_up.connect(func(): Input.action_release(action))
-	_buttons.append({"id":id,"button":b})
+	_buttons.append({"id":id,"button":b,"offset":offset})
 
 func _add_tap_button(id: String, label: String, offset: Vector2, action: StringName) -> void:
 	var b := _new_button(label, offset)
 	b.pressed.connect(func(): _tap_action(action))
-	_buttons.append({"id":id,"button":b})
+	_buttons.append({"id":id,"button":b,"offset":offset})
 
 func _tap_action(action: StringName) -> void:
 	Input.action_press(action)
