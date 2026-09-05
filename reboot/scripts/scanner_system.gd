@@ -8,6 +8,8 @@ signal scan_progress(value: float, label: String)
 @export var atmosphere_time := 1.8
 @export var subject_time := 1.25
 @export var range := 8.0
+@export var atmosphere_min_up_dot := 0.38
+@export var atmosphere_max_sweep_rate := 0.9
 @export var subject_min_lock_range := 1.4
 @export var subject_max_lock_range := 5.75
 @export var subject_max_sweep_rate := 1.1
@@ -37,10 +39,7 @@ func tick(delta: float, camera: Camera3D, enabled: bool) -> void:
 			_last_forward = forward
 		var target_distance := from.distance_to(hit.position)
 		var lock_state := subject_lock_state(target_distance)
-		var sweep_rate := 0.0
-		if _last_forward != Vector3.ZERO:
-			sweep_rate = _last_forward.angle_to(forward) / maxf(delta, 0.001)
-		_last_forward = forward
+		var sweep_rate := _sweep_rate(forward, delta)
 		var stability_state := subject_stability_state(sweep_rate)
 		if lock_state == "LOCKED" and stability_state == "STEADY":
 			_progress += delta / subject_time
@@ -61,12 +60,19 @@ func tick(delta: float, camera: Camera3D, enabled: bool) -> void:
 			_reset()
 		return
 	var look_up := forward.dot(Vector3.UP)
-	if not atmosphere_done and look_up > 0.38:
+	if not atmosphere_done:
 		if _last_target != self:
 			_progress = 0.0
 			_last_target = self
-		_progress += delta / atmosphere_time
-		scan_progress.emit(clampf(_progress, 0.0, 1.0), "ATMOSPHERIC SPECTRUM")
+			_last_forward = forward
+		var atmosphere_state := atmosphere_lock_state(look_up, _sweep_rate(forward, delta))
+		if atmosphere_state == "LOCKED":
+			_progress += delta / atmosphere_time
+			scan_progress.emit(clampf(_progress, 0.0, 1.0), "ATMOSPHERIC SPECTRUM • STEADY")
+		else:
+			_progress = maxf(0.0, _progress - delta * lock_decay_rate)
+			var atmosphere_cue := "RAISE SENSOR" if atmosphere_state == "LOW" else "STEADY SENSOR"
+			scan_progress.emit(clampf(_progress, 0.0, 1.0), "%s • ATMOSPHERIC SPECTRUM" % atmosphere_cue)
 		if _progress >= 1.0:
 			atmosphere_done = true
 			atmosphere_verified.emit()
@@ -85,6 +91,20 @@ func subject_stability_state(sweep_rate: float) -> String:
 	if sweep_rate > subject_max_sweep_rate:
 		return "SWEEPING"
 	return "STEADY"
+
+func atmosphere_lock_state(look_up: float, sweep_rate: float) -> String:
+	if look_up < atmosphere_min_up_dot:
+		return "LOW"
+	if sweep_rate > atmosphere_max_sweep_rate:
+		return "SWEEPING"
+	return "LOCKED"
+
+func _sweep_rate(forward: Vector3, delta: float) -> float:
+	var sweep_rate := 0.0
+	if _last_forward != Vector3.ZERO:
+		sweep_rate = _last_forward.angle_to(forward) / maxf(delta, 0.001)
+	_last_forward = forward
+	return sweep_rate
 
 func _reset() -> void:
 	_progress = 0.0
