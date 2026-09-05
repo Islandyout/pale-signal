@@ -33,6 +33,15 @@ func tick(delta: float, camera: Camera3D, enabled: bool) -> void:
 	var hit := space.intersect_ray(query)
 	if hit.has("collider") and hit.collider is Interactable:
 		var target: Interactable = hit.collider
+		# Identification is one-shot state. Revisiting an already identified subject
+		# should provide readable confirmation without replaying subject_scanned,
+		# tutorial completion, evidence hooks, or first-discovery audio.
+		if target.scanned:
+			_progress = 0.0
+			_last_target = target
+			_last_forward = forward
+			scan_progress.emit(1.0, "IDENTIFIED • %s" % target.display_name.to_upper())
+			return
 		if _last_target != target:
 			_progress = 0.0
 			_last_target = target
