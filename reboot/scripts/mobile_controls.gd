@@ -5,6 +5,7 @@ signal look_delta(delta_pixels: Vector2)
 
 const BUTTON_REFERENCE_VIEWPORT := Vector2(760.0, 420.0)
 const MIN_BUTTON_SCALE := 0.68
+const SAFE_EDGE_PADDING := 10.0
 
 var mode := "eva"
 var left_touch := -1
@@ -57,15 +58,21 @@ func set_mode(value: String) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible: return
 	var size: Vector2 = get_viewport_rect().size
+	var insets := _current_safe_insets(size)
 	var left_limit := _left_region_limit(size)
+	var safe_left := insets.x
+	var safe_top := insets.y
+	var safe_right := size.x - insets.z
+	var safe_bottom := size.y - insets.w
 	if event is InputEventScreenTouch:
 		if event.pressed:
-			if event.position.x < left_limit and event.position.y > size.y * 0.38 and left_touch < 0:
+			var in_safe_area := event.position.x >= safe_left and event.position.x <= safe_right and event.position.y >= safe_top and event.position.y <= safe_bottom
+			if in_safe_area and event.position.x < left_limit and event.position.y > maxf(size.y * 0.38, safe_top) and left_touch < 0:
 				left_touch = event.index
 				left_origin = event.position
 				left_position = event.position
 				queue_redraw()
-			elif event.position.x >= left_limit and event.position.x < size.x * 0.80 and look_touch < 0:
+			elif in_safe_area and event.position.x >= left_limit and event.position.x < minf(size.x * 0.80, safe_right) and look_touch < 0:
 				look_touch = event.index
 				look_last = event.position
 		else:
@@ -92,22 +99,52 @@ func _button_scale_for_viewport(size: Vector2) -> float:
 		return 1.0
 	return clampf(minf(size.x / BUTTON_REFERENCE_VIEWPORT.x, size.y / BUTTON_REFERENCE_VIEWPORT.y), MIN_BUTTON_SCALE, 1.0)
 
+func _safe_insets_for_layout(viewport_size: Vector2, safe_area: Rect2i, display_size: Vector2i) -> Vector4:
+	# DisplayServer reports Android/iOS safe areas in physical display pixels.
+	# Convert those edge insets into the current Godot viewport coordinate space
+	# so controls remain clear of notches and system gesture regions even when
+	# stretch scaling differs from the device's native resolution.
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0 or display_size.x <= 0 or display_size.y <= 0:
+		return Vector4.ZERO
+	if safe_area.size.x <= 0 or safe_area.size.y <= 0:
+		return Vector4.ZERO
+	var scale := Vector2(viewport_size.x / float(display_size.x), viewport_size.y / float(display_size.y))
+	var left := maxf(float(safe_area.position.x), 0.0) * scale.x
+	var top := maxf(float(safe_area.position.y), 0.0) * scale.y
+	var right_px := maxf(float(display_size.x - safe_area.end.x), 0.0)
+	var bottom_px := maxf(float(display_size.y - safe_area.end.y), 0.0)
+	return Vector4(left, top, right_px * scale.x, bottom_px * scale.y)
+
+func _current_safe_insets(viewport_size: Vector2) -> Vector4:
+	if not DisplayServer.is_touchscreen_available():
+		return Vector4.ZERO
+	var safe_area := DisplayServer.get_display_safe_area()
+	var display_size := DisplayServer.screen_get_size()
+	var insets := _safe_insets_for_layout(viewport_size, safe_area, display_size)
+	if insets == Vector4.ZERO:
+		return insets
+	return Vector4(insets.x + SAFE_EDGE_PADDING, insets.y + SAFE_EDGE_PADDING, insets.z + SAFE_EDGE_PADDING, insets.w + SAFE_EDGE_PADDING)
+
 func _left_region_limit(size: Vector2) -> float:
 	# Preserve a dedicated movement/steering region without letting its initial
 	# touch claim extend underneath the left-most roll column on narrow screens.
 	var scale := _button_scale_for_viewport(size)
-	var roll_column_left := size.x - 308.0 * scale
-	return maxf(96.0, minf(size.x * 0.43, roll_column_left - 12.0))
+	var insets := _current_safe_insets(size)
+	var roll_column_left := size.x - insets.z - 308.0 * scale
+	return maxf(insets.x + 96.0, minf(size.x * 0.43, roll_column_left - 12.0))
 
 func _layout_buttons() -> void:
-	if _buttons.is_empty():
-		return
-	var scale := _button_scale_for_viewport(get_viewport_rect().size)
+	var size := get_viewport_rect().size
+	var scale := _button_scale_for_viewport(size)
+	var insets := _current_safe_insets(size)
 	for item in _buttons:
 		var button: Button = item.button
 		var base_offset: Vector2 = item.offset
 		button.custom_minimum_size = Vector2(92.0, 56.0) * scale
-		button.position = base_offset * scale
+		button.position = base_offset * scale - Vector2(insets.z, insets.w)
+	if is_instance_valid(_cutscene_skip_button):
+		_cutscene_skip_button.custom_minimum_size = Vector2(112.0, 58.0) * scale
+		_cutscene_skip_button.position = Vector2(-132.0 * scale - insets.z, 20.0 * scale + insets.y)
 
 func _update_left_actions() -> void:
 	var v: Vector2 = (left_position - left_origin) / stick_radius
@@ -172,6 +209,7 @@ func _build_cutscene_skip_button() -> void:
 	# MobileControls during cinematics; the viewport-root button remains usable.
 	get_tree().root.add_child.call_deferred(button)
 	_cutscene_skip_button = button
+	_layout_buttons.call_deferred()
 
 func _new_button(label: String, offset: Vector2) -> Button:
 	var b := Button.new()
