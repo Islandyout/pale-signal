@@ -47,6 +47,27 @@ func _init() -> void:
 		push_error("hero archaeology must connect physical chronology to the conflicting-history premise")
 		quit(1)
 		return
+	var talari := TalariInstructor.new()
+	var load_response := talari.evidence_response_for_layer("LOAD PATH")
+	var restraint_response := talari.evidence_response_for_layer("RESTRAINT TRACE")
+	var chronology_response := talari.evidence_response_for_layer("ALTERATION SEQUENCE")
+	if not load_response.contains("does not prove"):
+		push_error("Talari load-path response must challenge overconfident interpretation without erasing physical evidence")
+		quit(1)
+		return
+	if not restraint_response.contains("not why"):
+		push_error("Talari restraint response must agree on the physical trace while preserving disagreement about historical motive")
+		quit(1)
+		return
+	if not chronology_response.contains("disagree") or not chronology_response.contains("both accounts"):
+		push_error("final Talari response must make conflicting history explicit without declaring one account complete")
+		quit(1)
+		return
+	var talari_source := FileAccess.get_file_as_string("res://scripts/talari_instructor.gd")
+	if not talari_source.contains("signal field_commentary") or not talari_source.contains("observe_evidence_pass"):
+		push_error("Talari historical perspective must remain an isolated observational signal rather than progression ownership")
+		quit(1)
+		return
 	var game_root_source := FileAccess.get_file_as_string("res://scripts/game_root.gd")
 	if not game_root_source.contains("FIRST-HOUR EVIDENCE %d / 2 RECOVERED"):
 		push_error("campaign archaeology feedback must stay inside the authored first-hour evidence scope")
@@ -77,6 +98,10 @@ func _init() -> void:
 		return
 	if not overlay_source.contains("evidence_pass_locked") or not overlay_source.contains("EVIDENCE %d / %d"):
 		push_error("hero archaeology findings must be surfaced through the contextual evidence overlay")
+		quit(1)
+		return
+	if not overlay_source.contains("_poll_talari") or not overlay_source.contains("field_commentary.connect") or not overlay_source.contains("observe_evidence_pass"):
+		push_error("Talari counter-reading must follow archaeology through the existing evidence-card channel")
 		quit(1)
 		return
 	if not overlay_source.contains("_pending_cards") or not overlay_source.contains("_queue_card") or not overlay_source.contains("_show_next_card"):
@@ -111,6 +136,7 @@ func _init() -> void:
 		push_error("observational evidence feedback must never consume desktop or mobile control input")
 		quit(1)
 		return
+	talari.free()
 	archaeology.free()
 	print("ARCHAEOLOGY EVIDENCE TEST: PASS")
 	quit(0)
