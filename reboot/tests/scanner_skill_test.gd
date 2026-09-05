@@ -19,6 +19,11 @@ func _init() -> void:
 	_assert(source.contains("_progress = maxf(0.0, _progress - delta * lock_decay_rate)"), "invalid scan lock must decay partial analysis rather than completing passively")
 	_assert(source.contains("lock_state == \"LOCKED\" and stability_state == \"STEADY\""), "subject analysis must require both readable range and sensor stability")
 	_assert(source.contains("atmosphere_state == \"LOCKED\""), "atmospheric analysis must require a valid sensor lock before progressing")
+	_assert(source.contains("if target.scanned:"), "scanner must recognize subjects that are already identified")
+	_assert(source.contains("IDENTIFIED • %s"), "already identified subjects must return explicit confirmation")
+	var identified_guard := source.find("if target.scanned:")
+	var completion_emit := source.find("subject_scanned.emit(target)")
+	_assert(identified_guard >= 0 and completion_emit > identified_guard, "identified-target guard must run before first-discovery completion emission")
 	scanner.free()
 	if failures == 0:
 		print("SCANNER SKILL TEST: PASS")
