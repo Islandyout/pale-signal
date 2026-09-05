@@ -66,7 +66,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	var safe_bottom := size.y - insets.w
 	if event is InputEventScreenTouch:
 		if event.pressed:
-			var in_safe_area := event.position.x >= safe_left and event.position.x <= safe_right and event.position.y >= safe_top and event.position.y <= safe_bottom
+			var in_safe_area: bool = event.position.x >= safe_left and event.position.x <= safe_right and event.position.y >= safe_top and event.position.y <= safe_bottom
 			if in_safe_area and event.position.x < left_limit and event.position.y > maxf(size.y * 0.38, safe_top) and left_touch < 0:
 				left_touch = event.index
 				left_origin = event.position
