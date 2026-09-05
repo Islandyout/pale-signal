@@ -18,6 +18,20 @@ func _init() -> void:
 	_assert(compact_scale < 1.0 and compact_scale >= MobileControls.MIN_BUTTON_SCALE, "short landscape viewports must scale controls down within the touch-size floor")
 	_assert(controls._left_region_limit(Vector2(360, 240)) < 360.0 * 0.43, "narrow landscape movement region must stop before the roll-button column")
 
+	# Android safe-area values arrive in physical display coordinates while the
+	# touch HUD operates in stretched viewport coordinates. Every edge inset must
+	# therefore scale into the same space before it offsets interactive controls.
+	var safe_insets := controls._safe_insets_for_layout(
+		Vector2(1200, 540),
+		Rect2i(80, 40, 2240, 1000),
+		Vector2i(2400, 1080)
+	)
+	_assert(is_equal_approx(safe_insets.x, 40.0), "left display cutout inset must scale into viewport coordinates")
+	_assert(is_equal_approx(safe_insets.y, 20.0), "top display cutout inset must scale into viewport coordinates")
+	_assert(is_equal_approx(safe_insets.z, 40.0), "right system inset must scale into viewport coordinates")
+	_assert(is_equal_approx(safe_insets.w, 20.0), "bottom gesture inset must scale into viewport coordinates")
+	_assert(controls._safe_insets_for_layout(Vector2(1200, 540), Rect2i(), Vector2i(2400, 1080)) == Vector4.ZERO, "invalid safe-area data must fall back without shifting controls")
+
 	Input.action_press("throttle_up")
 	Input.action_press("brake")
 	Input.action_press("roll_left")
@@ -81,6 +95,8 @@ func _init() -> void:
 	_assert(source.contains("look_delta.emit(delta_pixels)"), "camera-look region must emit look deltas instead of steering actions")
 	_assert(not source.contains("look_delta.connect(func(delta_pixels): Input.action_press"), "camera-look signal must never be converted into virtual steering actions")
 	_assert(source.contains("get_viewport().size_changed.connect(_layout_buttons)"), "touch controls must relayout after orientation or compact-window size changes")
+	_assert(source.contains("DisplayServer.get_display_safe_area()"), "Android touch layout must use the platform safe area instead of assuming the full display is interactive")
+	_assert(source.contains("button.position = base_offset * scale - Vector2(insets.z, insets.w)"), "right-side touch controls must move clear of right/bottom safe-area insets")
 
 	var tutorial_source := FileAccess.get_file_as_string("res://scripts/tutorial_director.gd")
 	_assert(tutorial_source.contains("Shift the evidence left/right"), "archaeology lesson must describe the shared alignment mechanic without requiring keyboard keys")
