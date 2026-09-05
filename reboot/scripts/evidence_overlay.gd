@@ -13,6 +13,8 @@ var _seen_notes: Dictionary = {}
 var _campaign_ready := false
 var _campaign_instance_id := 0
 var _archaeology_instance_id := 0
+var _talari_instance_id := 0
+var _talari_behavior: TalariInstructor
 var _hide_timer := 0.0
 var _pending_cards: Array[Dictionary] = []
 
@@ -26,6 +28,7 @@ func _process(delta: float) -> void:
 		_hide_timer = maxf(0.0, _hide_timer - delta)
 		if _hide_timer <= 0.0:
 			_show_next_card()
+	_poll_talari()
 	_poll_archaeology()
 	_poll_campaign_evidence()
 
@@ -81,6 +84,27 @@ func _layout_panel() -> void:
 	_panel.offset_top = top
 	_panel.offset_bottom = top + panel_height
 
+func _poll_talari() -> void:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
+	var art = scene.get("world_art")
+	if not (art is Dictionary):
+		return
+	var anchor = (art as Dictionary).get("talari")
+	if not (anchor is Node):
+		return
+	var behavior := (anchor as Node).get_node_or_null("TalariInstructorBehavior") as TalariInstructor
+	if behavior == null:
+		return
+	var behavior_id := behavior.get_instance_id()
+	if _talari_instance_id == behavior_id:
+		return
+	_talari_instance_id = behavior_id
+	_talari_behavior = behavior
+	if not behavior.field_commentary.is_connected(_on_talari_field_commentary):
+		behavior.field_commentary.connect(_on_talari_field_commentary)
+
 func _poll_archaeology() -> void:
 	var scene := get_tree().current_scene
 	if scene == null:
@@ -101,6 +125,13 @@ func _on_archaeology_evidence_pass(layer_name: String, finding: String, pass_num
 		"EVIDENCE %d / %d · %s" % [pass_number, total_passes, layer_name],
 		finding
 	)
+	# The Talari counter-reading is observational and queued behind the physical
+	# finding. It never changes reconstruction state, tutorial completion or saves.
+	if _talari_behavior != null and is_instance_valid(_talari_behavior):
+		_talari_behavior.observe_evidence_pass(layer_name, finding, pass_number, total_passes)
+
+func _on_talari_field_commentary(title: String, detail: String) -> void:
+	_queue_card(title, detail)
 
 func _poll_campaign_evidence() -> void:
 	var scene := get_tree().current_scene
