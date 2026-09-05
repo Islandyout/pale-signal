@@ -2,6 +2,7 @@ class_name TalariInstructor
 extends Node
 
 signal attention_state_changed(state: String)
+signal field_commentary(title: String, detail: String)
 
 # Presentation-only authored NPC routine for the first-hour Talari instructor.
 # The routine never owns progression, collision, tutorial completion, or player input.
@@ -57,6 +58,29 @@ func attention_state_for_distance(distance: float) -> String:
 	if distance <= attention_range:
 		return "OBSERVING"
 	return "PATROL"
+
+func observe_evidence_pass(layer_name: String, _finding: String, pass_number: int, total_passes: int) -> void:
+	# The instructor contributes a competing historical reading without becoming
+	# a dialogue gate or progression owner. The player's physical reconstruction
+	# remains authoritative evidence; this commentary makes the dispute visible.
+	var detail := evidence_response_for_layer(layer_name)
+	if detail.is_empty():
+		return
+	field_commentary.emit(
+		"TALARI FIELD RESPONSE · %d / %d" % [pass_number, maxi(total_passes, 1)],
+		detail
+	)
+
+func evidence_response_for_layer(layer_name: String) -> String:
+	match layer_name:
+		"LOAD PATH":
+			return "Talari archive: ground failure can preserve a load path. The instructor cautions that intact structure alone does not prove deliberate restraint."
+		"RESTRAINT TRACE":
+			return "Talari archive: the restraint pattern belongs to an evacuation retrofit. Your cross-joint scars agree it was added later, but not why."
+		"ALTERATION SEQUENCE":
+			return "Talari archive and your chronology now disagree. The site was altered before the final storm; the instructor records both accounts instead of declaring either complete."
+		_:
+			return ""
 
 func _set_attention_state(value: String) -> void:
 	if attention_state == value:
