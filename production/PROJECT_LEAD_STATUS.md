@@ -1,6 +1,6 @@
 # Project Lead Status
 
-Status date: 2026-09-05
+Status date: 2026-09-06
 
 The canonical production target is the clean Godot reboot on branch `reboot-godot`, rooted at `reboot/`. The legacy browser prototype is preserved only as historical/reference material and must not be used as the production architecture or implementation target.
 
@@ -20,11 +20,11 @@ The reboot currently provides an exportable Godot 4.7.2 project with isolated ga
 - Zero-cost policy and explicit asset/license provenance remain mandatory.
 
 ## Build and CI position
-Current checked `reboot-godot` head: `926e1c6bf808db3e529f929cf59db059aae64be8` (`Fix mobile safe-area parser regression`).
+Current `reboot-godot` branch head: `d5876d58b7e256d62dada29ff44d8be4fac66ad1` (`Refresh reboot project lead evidence`). This is a documentation-only head. The latest code-bearing head remains `926e1c6bf808db3e529f929cf59db059aae64be8` (`Fix mobile safe-area parser regression`).
 
-Reboot Godot CI run #245 completed successfully on that head after the mobile safe-area parser regression was corrected. The gated pipeline passed parser/import checks, real GLB/glTF validation, mechanic/regression tests, Web export, native Android debug export, Windows x86_64 export, artifact publication, and isolated preview publication.
+Reboot Godot CI run #245 completed successfully on the latest code-bearing head. The gated pipeline passed parser/import checks, real GLB/glTF validation, mechanic/regression tests, Web export, native Android debug export, Windows x86_64 export, artifact publication, and isolated preview publication.
 
-Current artifacts from that verified head:
+Current artifacts from that verified code-bearing head:
 - `pale-signal-reboot-web`: 25,238,444 bytes
 - `pale-signal-reboot-android-debug`: 43,001,826 bytes
 - `pale-signal-reboot-windows`: 38,922,478 bytes
@@ -37,7 +37,7 @@ The reboot asset ledger is authoritative under `reboot/production/`. Imported pr
 ## Project Lead decision this cycle
 No new product-code or cosmetic patch is justified solely from repository/CI evidence. The latest code-bearing change is green across parser/import, mechanics, Web, Android, Windows, and preview publication. The remaining strongest gaps are now evidence-dependent: first-hour feel/readability, physical Android install/update/touch/performance/thermal behavior, desktop runtime performance, and uninterrupted human save/reload playthrough quality.
 
-Resume implementation immediately if measured validation exposes a concrete reproducible defect. Otherwise avoid speculative tuning or cosmetic churn that cannot be justified without the missing evidence.
+The only repository change this cycle is this status correction so release-readiness records distinguish the current documentation-only branch head from the latest CI-verified code-bearing head. Resume implementation immediately if measured validation exposes a concrete reproducible defect. Otherwise avoid speculative tuning or cosmetic churn that cannot be justified without the missing evidence.
 
 ## Strongest remaining player-facing priorities
 1. Complete uninterrupted human validation of the authored Tethys/Kestra first hour, including tutorial comprehension, flight/landing feel, scanner judgment, archaeology legibility, Talari/wildlife readability, audio identity, contextual UI, and save/reload continuity.
