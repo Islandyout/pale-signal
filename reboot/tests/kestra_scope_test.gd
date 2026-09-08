@@ -35,6 +35,7 @@ func _init() -> void:
 	_assert(kestra_source.contains("HeroPaleArtifact"), "Kestra must replace the hidden generic fragment with a visible authored Pale Signal artifact")
 	_assert(kestra_source.contains("target.add_child(_build_pale_fragment_artifact())"), "authored fragment presentation must stay parented to the canonical interactable")
 	_assert(kestra_source.contains("visual.visible = false"), "generic fragment presentation must remain suppressed when the authored artifact is installed")
+	_test_collected_site_retirement()
 	_test_talari_instructor_contract()
 	if failures == 0:
 		print("KESTRA PRODUCTION SCOPE TEST: PASS")
@@ -42,6 +43,37 @@ func _init() -> void:
 	else:
 		push_error("KESTRA PRODUCTION SCOPE TEST: %d FAILURE(S)" % failures)
 		quit(1)
+
+func _test_collected_site_retirement() -> void:
+	var live_state := CampaignState.new()
+	var live_world := CampaignWorld.new()
+	root.add_child(live_world)
+	live_world.setup(live_state)
+	var resource_id := "resource|Tethys|Pale Reed|0"
+	var live_site := live_world.sites.get(resource_id) as Interactable
+	_assert(live_site != null, "known Tethys resource must exist for retirement regression coverage")
+	if live_site != null:
+		live_world.mark_site_collected(resource_id)
+		_assert(live_site.completed, "collected campaign site must retain completed physical state")
+		_assert(not live_site.visible, "collected campaign site must be hidden")
+		_assert(not live_site.monitoring and not live_site.monitorable, "collected campaign site must leave Area3D monitoring")
+		_assert(live_site.collision_layer == 0 and live_site.collision_mask == 0, "collected campaign site must leave scanner/physics collision layers")
+	live_world.queue_free()
+
+	var restored_state := CampaignState.new()
+	restored_state.collect_resource("Pale Reed", resource_id)
+	var restored_world := CampaignWorld.new()
+	root.add_child(restored_world)
+	restored_world.setup(restored_state)
+	restored_world.restore_collected_sites()
+	var restored_site := restored_world.sites.get(resource_id) as Interactable
+	_assert(restored_site != null, "saved collected resource must still resolve to its canonical authored site")
+	if restored_site != null:
+		_assert(restored_site.completed, "save reload must restore collected campaign completion state")
+		_assert(not restored_site.visible, "save reload must keep collected campaign site hidden")
+		_assert(not restored_site.monitoring and not restored_site.monitorable, "save reload must keep collected campaign site out of Area3D monitoring")
+		_assert(restored_site.collision_layer == 0 and restored_site.collision_mask == 0, "save reload must prevent invisible collected sites from remaining scanner ray targets")
+	restored_world.queue_free()
 
 func _test_talari_instructor_contract() -> void:
 	var world_art_source := FileAccess.get_file_as_string("res://scripts/world_art.gd")
