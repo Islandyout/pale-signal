@@ -9,12 +9,18 @@ func _ready() -> void:
 
 func _restore_runtime_state() -> void:
 	var saved := SaveSystem.load_state()
-	if not saved.has("runtime") or not (saved["runtime"] is Dictionary):
-		return
-	var runtime: Dictionary = saved["runtime"]
 	var root := get_tree().root.get_node_or_null("PaleSignalReboot")
 	if root == null:
 		return
+	# One-shot tutorial evidence can be performed before its lesson cursor reaches
+	# that step. GameRoot's initial restore only sees completed lessons, so reconcile
+	# the physical training sample from both completed and still-pending observed
+	# evidence before restoring controller context. This never advances tutorial
+	# progression; it only prevents a scanned/collected specimen from resurrecting.
+	_restore_training_sample(root, saved)
+	if not saved.has("runtime") or not (saved["runtime"] is Dictionary):
+		return
+	var runtime: Dictionary = saved["runtime"]
 	var ship := root.get_node_or_null("Ship") as ShipController
 	var eva := root.get_node_or_null("EVA") as EVAController
 	if ship == null or eva == null:
@@ -44,6 +50,25 @@ func _restore_runtime_state() -> void:
 	ship.throttle_changed.emit(ship.throttle)
 	ship.fuel_changed.emit(ship.fuel, ship.max_fuel)
 	ship.hull_changed.emit(ship.hull, ship.max_hull)
+
+func _restore_training_sample(root: Node, saved: Dictionary) -> void:
+	if not saved.has("tutorial") or not (saved["tutorial"] is Dictionary):
+		return
+	var tutorial_state := saved["tutorial"] as Dictionary
+	var completed := tutorial_state.get("completed", {})
+	var observed := tutorial_state.get("observed_one_shot", {})
+	if not completed is Dictionary:
+		completed = {}
+	if not observed is Dictionary:
+		observed = {}
+	var scan_done := (completed as Dictionary).has("scan") or (completed as Dictionary).has("collect") or bool((observed as Dictionary).get("scan", false)) or bool((observed as Dictionary).get("collect", false))
+	var collect_done := (completed as Dictionary).has("collect") or bool((observed as Dictionary).get("collect", false))
+	var sample := root.get("sample") as Interactable
+	if sample == null:
+		return
+	sample.scanned = scan_done or collect_done
+	if root.has_method("_set_sample_collected"):
+		root.call("_set_sample_collected", collect_done)
 
 func _array_to_vector3(value, fallback: Vector3) -> Vector3:
 	if not value is Array or value.size() != 3:
