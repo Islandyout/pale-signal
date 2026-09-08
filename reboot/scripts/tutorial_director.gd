@@ -70,7 +70,17 @@ func restore(data: Dictionary) -> void:
 	_move_distance = 0.0
 	_look_degrees = 0.0
 	_nav_seen.clear()
+	# Irreversible production actions can legitimately happen before their lesson
+	# becomes active. Persist those observations so reloading cannot resurrect a
+	# one-shot specimen/site while leaving the tutorial waiting for an impossible
+	# repeat. Only known one-shot lesson ids are accepted from save data.
 	_observed_one_shot.clear()
+	if data.has("observed_one_shot") and data["observed_one_shot"] is Dictionary:
+		var saved_observed := data["observed_one_shot"] as Dictionary
+		for lesson_id in EARLY_ONE_SHOT_EVENT_TO_LESSON.values():
+			var id := str(lesson_id)
+			if bool(saved_observed.get(id, false)) and not completed.has(id):
+				_observed_one_shot[id] = true
 
 func event(name: String, payload = null) -> void:
 	# Some production mechanics are intentionally one-shot. A curious player may
@@ -209,4 +219,9 @@ func _emit_current(progress := 0.0) -> void:
 	objective_changed.emit(lesson.title, lesson.detail, progress)
 
 func snapshot() -> Dictionary:
-	return {"index": index, "completed": completed.duplicate(true), "skipped": skipped.duplicate(true)}
+	return {
+		"index": index,
+		"completed": completed.duplicate(true),
+		"skipped": skipped.duplicate(true),
+		"observed_one_shot": _observed_one_shot.duplicate(true),
+	}
