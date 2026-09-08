@@ -253,12 +253,13 @@ func _on_reconstruction_state(stage: String, alignment: float, target: float, lo
 	scan_panel.visible = false
 	reconstruction_stage.text = stage
 	alignment_track.set_state(alignment, target, archaeology.lock_tolerance, lock_ready, archaeology.evidence_scanned)
+	var touch := DisplayServer.is_touchscreen_available()
 	if not archaeology.evidence_scanned:
 		reconstruction_instruction.text = "HOLD SCAN ON THE FOUNDATION TO RESOLVE THE EVIDENCE"
 	elif lock_ready:
-		reconstruction_instruction.text = "LOCK ZONE ACQUIRED  ·  PRESS E"
+		reconstruction_instruction.text = "LOCK ZONE ACQUIRED  ·  TAP USE" if touch else "LOCK ZONE ACQUIRED  ·  PRESS E"
 	else:
-		reconstruction_instruction.text = "A / D  ·  ALIGN THE WHITE CURSOR WITH THE TARGET BAND"
+		reconstruction_instruction.text = "LEFT STICK  ·  ALIGN THE WHITE CURSOR WITH THE TARGET BAND" if touch else "A / D  ·  ALIGN THE WHITE CURSOR WITH THE TARGET BAND"
 
 func _on_reconstruction_complete() -> void:
 	if not _reconstruction_is_tutorial_site:
