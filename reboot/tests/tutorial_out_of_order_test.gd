@@ -5,6 +5,8 @@ const TutorialDirectorScript = preload("res://scripts/tutorial_director.gd")
 func _init() -> void:
 	var tutorial = TutorialDirectorScript.new()
 	root.add_child(tutorial)
+	var persistence_observation := {"count": 0}
+	tutorial.persistence_requested.connect(func(): persistence_observation["count"] += 1)
 
 	# These production mechanics are possible before the tutorial cursor reaches
 	# them. They are one-shot, so valid early evidence must be retained rather
@@ -15,6 +17,14 @@ func _init() -> void:
 	tutorial.event("archaeology_complete")
 	if tutorial.index != 0:
 		_fail("early one-shot evidence must not skip the active movement lesson")
+		return
+	if int(persistence_observation["count"]) != 4:
+		_fail("each newly observed early one-shot mechanic must request immediate persistence")
+		return
+	# Duplicate mechanic callbacks must not create redundant save churn.
+	tutorial.event("sample_collected")
+	if int(persistence_observation["count"]) != 4:
+		_fail("duplicate one-shot observations must not request another persistence write")
 		return
 
 	# Cross an explicit save/reload boundary before the tutorial reaches those
