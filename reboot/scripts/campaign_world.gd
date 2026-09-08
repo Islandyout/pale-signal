@@ -181,8 +181,7 @@ func mark_site_collected(site_id: String) -> void:
 	if sites.has(site_id):
 		var site := sites[site_id] as Interactable
 		if is_instance_valid(site):
-			site.completed = true
-			site.visible = false
+			_retire_site(site)
 	_apply_progress_visibility()
 
 func restore_collected_sites() -> void:
@@ -190,8 +189,19 @@ func restore_collected_sites() -> void:
 	for site_id in campaign.collected_sites:
 		if sites.has(site_id):
 			var site := sites[site_id] as Interactable
-			if is_instance_valid(site): site.visible = false
+			if is_instance_valid(site): _retire_site(site)
 	_apply_progress_visibility()
+
+func _retire_site(site: Interactable) -> void:
+	# Collected one-shot world evidence must leave physics as well as presentation.
+	# Hiding an Area3D alone leaves it ray-queryable, allowing the scanner to lock
+	# onto an invisible resource/fragment after collection or save reload.
+	site.completed = true
+	site.visible = false
+	site.monitoring = false
+	site.monitorable = false
+	site.collision_layer = 0
+	site.collision_mask = 0
 
 func update_context(position_: Vector3, environment: Environment) -> String:
 	var info := surface_info(position_)
@@ -216,4 +226,5 @@ func _apply_progress_visibility() -> void:
 		if not CampaignState.PRODUCTION_WORLDS.has(str(data["world"])): continue
 		var site_id := "fragment|" + str(fragment_id)
 		if sites.has(site_id) and campaign.fragments.has(fragment_id):
-			(sites[site_id] as Interactable).visible = false
+			var site := sites[site_id] as Interactable
+			if is_instance_valid(site): _retire_site(site)
