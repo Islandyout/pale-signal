@@ -1,6 +1,6 @@
 # Project Lead Status
 
-Status date: 2026-09-06
+Status date: 2026-09-08
 
 The canonical production target is the clean Godot reboot on branch `reboot-godot`, rooted at `reboot/`. The legacy browser prototype is preserved only as historical/reference material and must not be used as the production architecture or implementation target.
 
@@ -20,14 +20,14 @@ The reboot currently provides an exportable Godot 4.7.2 project with isolated ga
 - Zero-cost policy and explicit asset/license provenance remain mandatory.
 
 ## Build and CI position
-The latest CI-verified code-bearing head is `926e1c6bf808db3e529f929cf59db059aae64be8` (`Fix mobile safe-area parser regression`). Documentation-only commits may exist after that code-bearing head and do not supersede its build evidence.
+The latest CI-verified code-bearing head is `5d43e605f1351786aaa44b0462677b47bacf508e` (`Test collected site scanner retirement`). The underlying player-facing change retires collected one-shot resource/fragment sites from physics as well as presentation, preventing invisible collected evidence from remaining scanner-ray targets after collection or save restore. The follow-up contract verifies that behavior.
 
-Reboot Godot CI run #245 completed successfully on that code-bearing head. The gated pipeline passed parser/import checks, real GLB/glTF validation, mechanic/regression tests, Web export, native Android debug export, Windows x86_64 export, artifact publication, and isolated preview publication.
+Reboot Godot CI run #263 completed successfully on that code-bearing head. The gated pipeline passed parser/import checks, real GLB/glTF validation, mechanic/regression tests, Web export, native Android debug export, Windows x86_64 export, artifact publication, and isolated preview publication.
 
 Current artifacts from that verified code-bearing head:
-- `pale-signal-reboot-web`: 25,238,444 bytes
-- `pale-signal-reboot-android-debug`: 43,001,826 bytes
-- `pale-signal-reboot-windows`: 38,922,478 bytes
+- `pale-signal-reboot-web`: 25,246,243 bytes
+- `pale-signal-reboot-android-debug`: 43,010,624 bytes
+- `pale-signal-reboot-windows`: 38,922,477 bytes
 
 Successful CI proves build/export health only; it does not prove visual quality, device performance, thermals, touch usability, accessibility in practice, or human-playtest quality.
 
@@ -35,9 +35,9 @@ Successful CI proves build/export health only; it does not prove visual quality,
 The reboot asset ledger is authoritative under `reboot/production/`. Imported production-base assets have explicit source, pinned revision, license, and integrity records. Generic CC0 assets remain source material rather than final identity, and the designated hero assets remain subject to the custom/substantially transformed presentation rule.
 
 ## Project Lead decision this cycle
-No new product-code or cosmetic patch is justified solely from repository/CI evidence. The latest code-bearing change is green across parser/import, mechanics, Web, Android, Windows, and preview publication. The remaining strongest gaps are now evidence-dependent: first-hour feel/readability, physical Android install/update/touch/performance/thermal behavior, desktop runtime performance, and uninterrupted human save/reload playthrough quality.
+The collected-site scanner regression now has implementation and regression coverage on the current green head. No further product-code or cosmetic patch is justified solely from repository/CI evidence. The remaining strongest gaps are evidence-dependent: first-hour feel/readability, physical Android install/update/touch/performance/thermal behavior, desktop runtime performance, and uninterrupted human save/reload playthrough quality.
 
-Release-readiness records intentionally track the latest CI-verified code-bearing head instead of embedding a self-invalidating claim about the current documentation branch head. Resume implementation immediately if measured validation exposes a concrete reproducible defect. Otherwise avoid speculative tuning or cosmetic churn that cannot be justified without the missing evidence.
+Release-readiness records intentionally track the latest CI-verified code-bearing head rather than embedding a self-invalidating claim about a documentation-only branch head. Resume implementation immediately if measured validation exposes a concrete reproducible defect. Otherwise avoid speculative tuning or cosmetic churn that cannot be justified without the missing evidence.
 
 ## Strongest remaining player-facing priorities
 1. Complete uninterrupted human validation of the authored Tethys/Kestra first hour, including tutorial comprehension, flight/landing feel, scanner judgment, archaeology legibility, Talari/wildlife readability, audio identity, contextual UI, and save/reload continuity.
