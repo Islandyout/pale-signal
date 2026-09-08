@@ -81,6 +81,18 @@ func _init() -> void:
 		push_error("hero tutorial archaeology must use the authored presentation layer")
 		quit(1)
 		return
+	if not game_root_source.contains("direction = \"E · LOCK EVIDENCE\""):
+		push_error("desktop archaeology prompt must describe the real press-to-lock mechanic")
+		quit(1)
+		return
+	if not game_root_source.contains("direction = \"USE · LOCK EVIDENCE\""):
+		push_error("touch archaeology prompt must describe the real tap-to-lock mechanic")
+		quit(1)
+		return
+	if game_root_source.contains("direction = \"HOLD · E LOCK\"") or game_root_source.contains("direction = \"HOLD · USE LOCK\""):
+		push_error("archaeology HUD must not teach a hold interaction that the mechanic does not require")
+		quit(1)
+		return
 	var world_art_source := FileAccess.get_file_as_string("res://scripts/world_art.gd")
 	for authored_marker in ["HeroArchaeologyLanguage", "LoadRib", "RestraintShoe", "EvidenceTrace", "SurveyDatum"]:
 		if not world_art_source.contains(authored_marker):
