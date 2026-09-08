@@ -41,6 +41,12 @@ func _init() -> void:
 	if not runtime_source.contains("ship.velocity = Vector3.ZERO if bool(runtime.get(\"ship_landed\""):
 		_fail("landed reloads must restart physically settled instead of replaying stale touchdown velocity")
 		return
+	if not runtime_source.contains("_restore_training_sample(root, saved)"):
+		_fail("runtime restore must reconcile one-shot training specimen state before controller context")
+		return
+	if not runtime_source.contains("observed_one_shot") or not runtime_source.contains("root.call(\"_set_sample_collected\", collect_done)"):
+		_fail("out-of-order scan/collection evidence must restore the physical training specimen without advancing tutorial state")
+		return
 	if not project_source.contains("RuntimePersistence=\"*res://scripts/runtime_persistence.gd\""):
 		_fail("runtime persistence must be enabled in the production Godot project")
 		return
