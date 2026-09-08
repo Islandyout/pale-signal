@@ -5,8 +5,11 @@ const TutorialDirectorScript = preload("res://scripts/tutorial_director.gd")
 func _init() -> void:
 	var tutorial = TutorialDirectorScript.new()
 	root.add_child(tutorial)
-	var reveal_count := 0
-	tutorial.request_reveal_cutscene.connect(func(): reveal_count += 1)
+	# Lambdas capture scalar locals by value in GDScript. Keep the observation in
+	# a reference type so the signal callback can update state visible to this
+	# contract after the queued archaeology lesson is reconciled.
+	var reveal_observation := {"count": 0}
+	tutorial.request_reveal_cutscene.connect(func(): reveal_observation["count"] += 1)
 
 	# These production mechanics are possible before the tutorial cursor reaches
 	# them. They are one-shot, so valid early evidence must be retained rather
@@ -34,7 +37,7 @@ func _init() -> void:
 		if not tutorial.completed.has(id):
 			_fail("expected completed lesson missing after out-of-order reconciliation: %s" % id)
 			return
-	if reveal_count != 1:
+	if int(reveal_observation["count"]) != 1:
 		_fail("early archaeology completion must preserve exactly one observational reveal")
 		return
 
