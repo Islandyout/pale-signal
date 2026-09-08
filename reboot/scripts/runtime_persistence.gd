@@ -54,15 +54,13 @@ func _restore_runtime_state() -> void:
 func _restore_training_sample(root: Node, saved: Dictionary) -> void:
 	if not saved.has("tutorial") or not (saved["tutorial"] is Dictionary):
 		return
-	var tutorial_state := saved["tutorial"] as Dictionary
-	var completed := tutorial_state.get("completed", {})
-	var observed := tutorial_state.get("observed_one_shot", {})
-	if not completed is Dictionary:
-		completed = {}
-	if not observed is Dictionary:
-		observed = {}
-	var scan_done := (completed as Dictionary).has("scan") or (completed as Dictionary).has("collect") or bool((observed as Dictionary).get("scan", false)) or bool((observed as Dictionary).get("collect", false))
-	var collect_done := (completed as Dictionary).has("collect") or bool((observed as Dictionary).get("collect", false))
+	var tutorial_state: Dictionary = saved["tutorial"]
+	var completed_value: Variant = tutorial_state.get("completed", {})
+	var observed_value: Variant = tutorial_state.get("observed_one_shot", {})
+	var completed: Dictionary = completed_value if completed_value is Dictionary else {}
+	var observed: Dictionary = observed_value if observed_value is Dictionary else {}
+	var scan_done := completed.has("scan") or completed.has("collect") or bool(observed.get("scan", false)) or bool(observed.get("collect", false))
+	var collect_done := completed.has("collect") or bool(observed.get("collect", false))
 	var sample := root.get("sample") as Interactable
 	if sample == null:
 		return
