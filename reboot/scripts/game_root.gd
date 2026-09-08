@@ -254,10 +254,13 @@ func _on_reconstruction_state(stage: String, alignment: float, target: float, lo
 		return
 	var delta := target - alignment
 	var direction: String
+	# Regression note: legacy copy was "HOLD · E LOCK" / "HOLD · USE LOCK" even
+	# though ArchaeologySystem consumes interact on just-pressed. Keep the prompt
+	# faithful to the real mechanic so players are not taught a nonexistent hold.
 	if _is_touch_input():
-		direction = "HOLD · USE LOCK" if lock_ready else ("LEFT STICK · SHIFT LEFT" if delta < 0.0 else "LEFT STICK · SHIFT RIGHT")
+		direction = "USE · LOCK EVIDENCE" if lock_ready else ("LEFT STICK · SHIFT LEFT" if delta < 0.0 else "LEFT STICK · SHIFT RIGHT")
 	else:
-		direction = "HOLD · E LOCK" if lock_ready else ("A · SHIFT LEFT" if delta < 0.0 else "D · SHIFT RIGHT")
+		direction = "E · LOCK EVIDENCE" if lock_ready else ("A · SHIFT LEFT" if delta < 0.0 else "D · SHIFT RIGHT")
 	scan_label.text = "%s · %s · OFFSET %.2f" % [stage, direction, absf(delta)]
 
 func _restore_first_hour_progress() -> void:
