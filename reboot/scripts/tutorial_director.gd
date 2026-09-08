@@ -156,8 +156,12 @@ func skip_current() -> bool:
 func _complete() -> void:
 	var id: String = LESSONS[index].id
 	completed[id] = true
-	lesson_completed.emit(id)
+	# Advance the authoritative lesson cursor before notifying persistence/UI
+	# listeners. GameRoot saves from lesson_completed, so emitting first would
+	# serialize the just-completed lesson as the active lesson and replay it after
+	# reload even though its completion flag was already recorded.
 	index += 1
+	lesson_completed.emit(id)
 	if index >= LESSONS.size():
 		objective_changed.emit("FIELD QUALIFICATION COMPLETE", "The production mechanics are proven. Continue investigating the Tethys/Kestra vertical slice; wider campaign systems remain locked until quality gates pass.", 1.0)
 		tutorial_completed.emit()
