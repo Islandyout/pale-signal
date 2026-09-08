@@ -8,6 +8,7 @@ signal lesson_skipped(id: String)
 signal tutorial_completed
 signal request_intro_cutscene
 signal request_reveal_cutscene
+signal persistence_requested
 
 const TETHYS_TRAINING_BASIN_RADIUS := 95.0
 const EARLY_ONE_SHOT_EVENT_TO_LESSON := {
@@ -37,6 +38,14 @@ var _move_distance := 0.0
 var _look_degrees := 0.0
 var _nav_seen := {}
 var _observed_one_shot := {}
+
+func _ready() -> void:
+	# GameRoot remains the single save coordinator. The tutorial only requests a
+	# save when irreversible early evidence changes, so quitting before the next
+	# lesson boundary cannot discard a real scan/collection/reconstruction event.
+	var host := get_parent()
+	if host != null and host.has_method("_save_game"):
+		persistence_requested.connect(Callable(host, "_save_game"))
 
 func _process(_delta: float) -> void:
 	if Input.is_action_just_pressed("tutorial_reset"):
@@ -161,8 +170,10 @@ func event(name: String, payload = null) -> void:
 
 func _remember_one_shot(event_name: String) -> void:
 	var lesson_id := str(EARLY_ONE_SHOT_EVENT_TO_LESSON.get(event_name, ""))
-	if not lesson_id.is_empty():
-		_observed_one_shot[lesson_id] = true
+	if lesson_id.is_empty() or completed.has(lesson_id) or _observed_one_shot.has(lesson_id):
+		return
+	_observed_one_shot[lesson_id] = true
+	persistence_requested.emit()
 
 func _consume_observed_current() -> bool:
 	if index >= LESSONS.size():
