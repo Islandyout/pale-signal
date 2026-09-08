@@ -10,6 +10,12 @@ signal request_intro_cutscene
 signal request_reveal_cutscene
 
 const TETHYS_TRAINING_BASIN_RADIUS := 95.0
+const EARLY_ONE_SHOT_EVENT_TO_LESSON := {
+	"atmosphere_verified": "air",
+	"subject_scanned": "scan",
+	"sample_collected": "collect",
+	"archaeology_complete": "archaeology",
+}
 const LESSONS := [
 	{"id":"move", "title":"EVA MOVEMENT", "detail":"Move through the marked basin. Reach 8 m of real displacement."},
 	{"id":"look", "title":"CAMERA / BODY SEPARATION", "detail":"Look around at least 90 degrees. Looking does not move or steer you."},
@@ -30,6 +36,7 @@ var skipped := {}
 var _move_distance := 0.0
 var _look_degrees := 0.0
 var _nav_seen := {}
+var _observed_one_shot := {}
 
 func _process(_delta: float) -> void:
 	if Input.is_action_just_pressed("tutorial_reset"):
@@ -63,8 +70,15 @@ func restore(data: Dictionary) -> void:
 	_move_distance = 0.0
 	_look_degrees = 0.0
 	_nav_seen.clear()
+	_observed_one_shot.clear()
 
 func event(name: String, payload = null) -> void:
+	# Some production mechanics are intentionally one-shot. A curious player may
+	# perform them before the tutorial cursor reaches that lesson. Remember only
+	# those irreversible observations so the tutorial cannot soft-lock later.
+	# Repeatable flight/navigation/landing evidence is deliberately not queued:
+	# those lessons must still be performed in sequence when they become active.
+	_remember_one_shot(name)
 	if index >= LESSONS.size(): return
 	var id: String = LESSONS[index].id
 	match id:
@@ -135,6 +149,24 @@ func event(name: String, payload = null) -> void:
 							if planar_distance <= TETHYS_TRAINING_BASIN_RADIUS:
 								_complete()
 
+func _remember_one_shot(event_name: String) -> void:
+	var lesson_id := str(EARLY_ONE_SHOT_EVENT_TO_LESSON.get(event_name, ""))
+	if not lesson_id.is_empty():
+		_observed_one_shot[lesson_id] = true
+
+func _consume_observed_current() -> bool:
+	if index >= LESSONS.size():
+		return false
+	var id: String = LESSONS[index].id
+	if not _observed_one_shot.has(id):
+		return false
+	# Archaeology's reveal remains presentation-only, but should still play when
+	# the valid reconstruction happened ahead of the tutorial cursor.
+	if id == "archaeology":
+		request_reveal_cutscene.emit()
+	_complete()
+	return true
+
 func reset_current() -> void:
 	if index >= LESSONS.size(): return
 	var id: String = LESSONS[index].id
@@ -155,6 +187,7 @@ func skip_current() -> bool:
 
 func _complete() -> void:
 	var id: String = LESSONS[index].id
+	_observed_one_shot.erase(id)
 	completed[id] = true
 	# Advance the authoritative lesson cursor before notifying persistence/UI
 	# listeners. GameRoot saves from lesson_completed, so emitting first would
@@ -165,6 +198,8 @@ func _complete() -> void:
 	if index >= LESSONS.size():
 		objective_changed.emit("FIELD QUALIFICATION COMPLETE", "The production mechanics are proven. Continue investigating the Tethys/Kestra vertical slice; wider campaign systems remain locked until quality gates pass.", 1.0)
 		tutorial_completed.emit()
+		return
+	if _consume_observed_current():
 		return
 	_emit_current()
 

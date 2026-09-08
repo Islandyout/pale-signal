@@ -74,6 +74,8 @@ jobs:
         run: godot --headless --path reboot --script res://tests/tutorial_landing_test.gd
       - name: Verify tutorial save-boundary persistence
         run: godot --headless --path reboot --script res://tests/tutorial_persistence_test.gd
+      - name: Verify tutorial out-of-order one-shot resilience
+        run: godot --headless --path reboot --script res://tests/tutorial_out_of_order_test.gd
       - name: Verify scanner skill contract
         run: godot --headless --path reboot --script res://tests/scanner_skill_test.gd
       - name: Verify archaeology evidence layers
