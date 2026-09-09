@@ -1,6 +1,6 @@
 # Pale Signal — Godot Reboot Release Readiness
 
-Status date: 2026-09-06
+Status date: 2026-09-08
 Scope: canonical Godot 4.7.2 production reboot on `reboot-godot`, focused exclusively on the Tethys / Kestra first hour.
 
 The legacy browser prototype is preserved on `legacy-prototype` and is not a production target. Legacy browser/PWA readiness percentages, live-layer quality claims, and WebView Android evidence must not be used to approve the Godot reboot.
@@ -23,16 +23,17 @@ Automated tests and successful exports prove parser/import/build health only. Th
 - Web, native Android, and Windows x86_64 exports are part of the reboot CI pipeline.
 - Imported production-base assets are governed by explicit provenance/license records and CI import policy.
 - First-hour HUD scope is guarded so unfinished multi-world fragment progression is not presented as current slice completion.
+- Collected one-shot resource/fragment sites retire from scanner physics as well as presentation, so collected evidence cannot remain as invisible scanner-ray targets after collection or save restore.
 
 ## Current automated evidence
-The latest CI-verified code-bearing head is `926e1c6bf808db3e529f929cf59db059aae64be8` (`Fix mobile safe-area parser regression`). Documentation-only commits may exist after that code-bearing head and do not supersede its build evidence.
+The latest CI-verified code-bearing head is `5d43e605f1351786aaa44b0462677b47bacf508e` (`Test collected site scanner retirement`). Documentation-only commits may exist after that code-bearing head and do not supersede its build evidence.
 
-Reboot Godot CI run #245 completed successfully on that code-bearing head. The gated pipeline passed parser/import checks, real GLB/glTF validation, mechanic/regression tests, Web export, native Android debug export, Windows x86_64 export, artifact publication, and isolated preview publication.
+Reboot Godot CI run #263 completed successfully on that code-bearing head. The gated pipeline passed parser/import checks, real GLB/glTF validation, mechanic/regression tests, Web export, native Android debug export, Windows x86_64 export, artifact publication, and isolated preview publication.
 
 Current artifacts from that verified code-bearing head:
-- `pale-signal-reboot-web`: 25,238,444 bytes
-- `pale-signal-reboot-android-debug`: 43,001,826 bytes
-- `pale-signal-reboot-windows`: 38,922,478 bytes
+- `pale-signal-reboot-web`: 25,246,243 bytes
+- `pale-signal-reboot-android-debug`: 43,010,624 bytes
+- `pale-signal-reboot-windows`: 38,922,477 bytes
 
 This automated evidence does not promote any visual, player-feel, touch, performance, thermal, accessibility-in-practice, hardware, or human-play gate.
 
